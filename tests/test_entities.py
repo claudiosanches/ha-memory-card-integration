@@ -8,10 +8,11 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     ATTR_UNIT_OF_MEASUREMENT,
+    EVENT_STATE_CHANGED,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -226,6 +227,26 @@ async def test_any_fault_while_reading_starts_the_feed_over(
         await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
     assert fake_app.connections == 2
     assert "Memory Card's feed failed" in caplog.text
+
+
+async def test_a_burst_of_states_updates_the_entities_once_a_second(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    written: list[Event] = []
+
+    @callback
+    def changed(event: Event) -> None:
+        if event.data["entity_id"] == "sensor.memory_card_games":
+            written.append(event)
+
+    hass.bus.async_listen(EVENT_STATE_CHANGED, changed)
+    for games in range(4, 54):
+        state = copy.deepcopy(STATE)
+        state["games"] = games
+        fake_app.send_state(state)
+    await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "53")
+    assert len(written) <= 2
 
 
 async def test_values_a_sensor_cannot_show_are_left_out(

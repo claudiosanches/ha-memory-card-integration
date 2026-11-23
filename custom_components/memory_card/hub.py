@@ -9,6 +9,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
@@ -20,6 +21,9 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS_SENT = ("sensor", "button")
 # Far more than the app sends, so a broken feed cannot flood the registry.
 ENTITIES_MAX = 64
+# The app sends a change about a second after it happens, so faster states
+# are a fault and wait.
+UPDATE_COOLDOWN = 1.0
 # Names, icons, units and versions are short.
 TEXT_MAX = 100
 
@@ -81,6 +85,9 @@ class MemoryCardHub:
         self._ready = asyncio.Event()
         self._hello_due = True
         self._task: asyncio.Task[None] | None = None
+        self._update = Debouncer(
+            hass, _LOGGER, cooldown=UPDATE_COOLDOWN, immediate=True, function=self._send_update
+        )
 
     @property
     def signal_entities(self) -> str:
@@ -122,6 +129,7 @@ class MemoryCardHub:
 
     async def stop(self) -> None:
         """Close the feed."""
+        self._update.async_shutdown()
         if self._task is not None:
             self._task.cancel()
             await asyncio.wait([self._task])
@@ -177,9 +185,11 @@ class MemoryCardHub:
             return True
         if kind == "state" and isinstance(message.get("state"), dict):
             self.state = message["state"]
-            self.connected = True
             self._ready.set()
-            async_dispatcher_send(self.hass, self.signal_update)
+            if self.connected:
+                self._update.async_schedule_call()
+            else:
+                self._set_connected(True)
         return False
 
     def _hello(self, message: dict[str, Any]) -> None:
@@ -203,6 +213,10 @@ class MemoryCardHub:
         for entry in er.async_entries_for_config_entry(registry, self.entry.entry_id):
             if entry.unique_id not in kept:
                 registry.async_remove(entry.entity_id)
+
+    @callback
+    def _send_update(self) -> None:
+        async_dispatcher_send(self.hass, self.signal_update)
 
     def _set_connected(self, connected: bool) -> None:
         if self.connected != connected:
