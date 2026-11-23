@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "hassio_confirm": {
+        "title": "Memory Card",
+        "description": "Add the sensors and the Roll a pick button from the {addon} app?"
+      }
+    },
+    "abort": {
+      "already_configured": "Memory Card is already set up.",
+      "discovery_only": "Memory Card sets itself up. In the Memory Card app's configuration, set Home Assistant sensors to \"integration\" and restart the app; Home Assistant then shows it as discovered.",
+      "invalid_discovery": "The Memory Card app announced itself without an address or token. Update the app."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "games": {
+        "name": "Games"
+      },
+      "copies": {
+        "name": "Copies"
+      },
+      "wishlist": {
+        "name": "Wishlist"
+      },
+      "backlog": {
+        "name": "Backlog"
+      },
+      "playing": {
+        "name": "Playing"
+      },
+      "last_played": {
+        "name": "Last played"
+      },
+      "last_added": {
+        "name": "Last added"
+      },
+      "pick": {
+        "name": "Current pick"
+      }
+    },
+    "button": {
+      "roll_pick": {
+        "name": "Roll a pick"
+      }
+    }
+  },
+  "services": {
+    "roll_pick": {
+      "name": "Roll a pick",
+      "description": "Picks a random owned game, as \"Pick for me\" on the Backlog page does. Without filters it picks from the backlog.",
+      "fields": {
+        "play_status": {
+          "name": "Play statuses",
+          "description": "Play status keys to pick from. Empty means every status that counts as backlog."
+        },
+        "platform": {
+          "name": "Platforms",
+          "description": "Platform slugs, as each platform's form in Memory Card shows them."
+        },
+        "device": {
+          "name": "Devices",
+          "description": "Device slugs: copies on these devices, or with no device on a platform one of them plays."
+        },
+        "genre": {
+          "name": "Genres",
+          "description": "Genre slugs."
+        },
+        "game_mode": {
+          "name": "Game modes",
+          "description": "Game mode slugs."
+        },
+        "min_local_players": {
+          "name": "Local players",
+          "description": "At least this many players on the same screen."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Cannot reach the Memory Card app."
+    },
+    "no_match": {
+      "message": "No game matches these filters."
+    },
+    "invalid_filters": {
+      "message": "Memory Card could not read these filters."
+    },
+    "not_loaded": {
+      "message": "Memory Card is not set up."
+    }
+  }
+}

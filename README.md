@@ -1,0 +1,73 @@
+# Memory Card integration for Home Assistant
+
+Brings the sensors and the Roll a pick button of the
+[Memory Card app](https://github.com/claudiosanches/ha-memory-card) into Home
+Assistant without an MQTT broker. Memory Card tracks a video game collection
+across consoles.
+
+The app does all the work. This integration reads what it sends, so the
+entities match the ones the app's MQTT mode creates, IDs included.
+
+## Requirements
+
+- Home Assistant 2026.3 or newer, with the Memory Card app 0.1.0 or newer.
+- [HACS](https://hacs.xyz).
+
+## Installation
+
+1. [Add this repository to HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=claudiosanches&repository=ha-memory-card-integration&category=integration)
+   as a custom repository of type **Integration**, download **Memory Card**,
+   and restart Home Assistant.
+2. In the Memory Card app's **Configuration** tab, set **Home Assistant
+   sensors** to `integration`, save, and restart the app.
+3. Under **Settings > Devices & services**, Memory Card shows as discovered.
+   Select **Add**.
+
+There is nothing to type: the app tells Home Assistant where to find it and
+which token to use. Setting the option back to `mqtt` or `off` removes the
+integration's entry and entities on the app's next start.
+
+## Entities
+
+| Entity | State |
+|---|---|
+| `sensor.memory_card_games` | Games with at least one owned copy |
+| `sensor.memory_card_copies` | Owned copies |
+| `sensor.memory_card_wishlist` | Copies on the wishlist |
+| `sensor.memory_card_backlog` | Owned games in a status that counts as backlog |
+| `sensor.memory_card_playing` | Owned games in a status that counts as playing |
+| `sensor.memory_card_last_played` | Title of the game with the latest play session |
+| `sensor.memory_card_last_added` | Title of the game whose owned copy was added last |
+| `sensor.memory_card_pick` | Title of the latest random pick |
+| `button.memory_card_roll_pick` | Picks a random owned game from the backlog |
+
+The app's documentation lists their attributes. Values update about a second
+after each change, and the entities are unavailable while the app is stopped.
+
+## Action
+
+`memory_card.roll_pick` picks a random owned game. Without fields it picks
+from the backlog, like the button. The fields narrow it down:
+
+```yaml
+action: memory_card.roll_pick
+data:
+  device: switch
+  min_local_players: 2
+response_variable: pick
+```
+
+`play_status`, `platform`, `device`, `genre` and `game_mode` take one slug or
+a list of them, as the app's forms show them. `min_local_players` is a
+number. The response holds the picked game's `title` and `platforms`.
+
+## Support
+
+Questions and bugs go to
+[GitHub issues](https://github.com/claudiosanches/ha-memory-card-integration/issues).
+To support development, use [GitHub Sponsors](https://github.com/sponsors/claudiosanches)
+or [Ko-fi](https://ko-fi.com/claudiosanches).
+
+## License
+
+GPL-3.0, like the app.

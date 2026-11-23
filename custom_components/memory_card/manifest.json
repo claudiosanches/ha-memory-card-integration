@@ -1,0 +1,13 @@
+{
+  "domain": "memory_card",
+  "name": "Memory Card",
+  "codeowners": ["@claudiosanches"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/claudiosanches/ha-memory-card-integration",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/claudiosanches/ha-memory-card-integration/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

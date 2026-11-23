@@ -1,0 +1,27 @@
+[project]
+name = "ha-memory-card-integration"
+version = "0.1.0"
+description = "Home Assistant integration for the Memory Card app"
+license = "GPL-3.0-only"
+requires-python = ">=3.14"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC", "PL", "D"]
+ignore = ["D203", "D213", "PLR2004", "PLR0913"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components"]
+combine-as-imports = true

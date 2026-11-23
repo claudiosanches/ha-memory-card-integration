@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "hassio_confirm": {
+        "title": "Memory Card",
+        "description": "¿Añadir los sensores y el botón Sortear un juego de la aplicación {addon}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Memory Card ya está configurado.",
+      "discovery_only": "Memory Card se configura solo. En la configuración de la aplicación Memory Card, pon Sensores de Home Assistant en \"integration\" y reinicia la aplicación; Home Assistant la mostrará como descubierta.",
+      "invalid_discovery": "La aplicación Memory Card se anunció sin dirección ni token. Actualiza la aplicación."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "games": {
+        "name": "Juegos"
+      },
+      "copies": {
+        "name": "Copias"
+      },
+      "wishlist": {
+        "name": "Lista de deseos"
+      },
+      "backlog": {
+        "name": "Pendientes"
+      },
+      "playing": {
+        "name": "Jugando"
+      },
+      "last_played": {
+        "name": "Último jugado"
+      },
+      "last_added": {
+        "name": "Último añadido"
+      },
+      "pick": {
+        "name": "Sugerencia actual"
+      }
+    },
+    "button": {
+      "roll_pick": {
+        "name": "Sortear un juego"
+      }
+    }
+  },
+  "services": {
+    "roll_pick": {
+      "name": "Sortear un juego",
+      "description": "Elige al azar un juego que tienes, como hace \"Elige por mí\" en la página Pendientes. Sin filtros, elige entre los pendientes.",
+      "fields": {
+        "play_status": {
+          "name": "Estados de juego",
+          "description": "Claves de los estados de juego entre los que elegir. Vacío significa todos los estados que cuentan como pendientes."
+        },
+        "platform": {
+          "name": "Plataformas",
+          "description": "Slugs de plataformas, como los muestra el formulario de cada plataforma en Memory Card."
+        },
+        "device": {
+          "name": "Dispositivos",
+          "description": "Slugs de dispositivos: copias en estos dispositivos, o sin dispositivo en una plataforma que alguno de ellos ejecuta."
+        },
+        "genre": {
+          "name": "Géneros",
+          "description": "Slugs de géneros."
+        },
+        "game_mode": {
+          "name": "Modos de juego",
+          "description": "Slugs de modos de juego."
+        },
+        "min_local_players": {
+          "name": "Jugadores locales",
+          "description": "Al menos esta cantidad de jugadores en la misma pantalla."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "No se puede conectar con la aplicación Memory Card."
+    },
+    "no_match": {
+      "message": "Ningún juego coincide con estos filtros."
+    },
+    "invalid_filters": {
+      "message": "Memory Card no pudo leer estos filtros."
+    },
+    "not_loaded": {
+      "message": "Memory Card no está configurado."
+    }
+  }
+}

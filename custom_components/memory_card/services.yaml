@@ -1,0 +1,31 @@
+roll_pick:
+  fields:
+    play_status:
+      selector:
+        text:
+          multiple: true
+    platform:
+      example: switch
+      selector:
+        text:
+          multiple: true
+    device:
+      example: switch
+      selector:
+        text:
+          multiple: true
+    genre:
+      selector:
+        text:
+          multiple: true
+    game_mode:
+      selector:
+        text:
+          multiple: true
+    min_local_players:
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box

@@ -1,0 +1,7 @@
+{
+  "services": {
+    "roll_pick": {
+      "service": "mdi:dice-5"
+    }
+  }
+}
