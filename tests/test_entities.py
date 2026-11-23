@@ -276,9 +276,13 @@ async def test_values_a_sensor_cannot_show_are_left_out(
     assert hass.states.get("sensor.memory_card_games").state == STATE_UNKNOWN
     assert hass.states.get("sensor.memory_card_copies").state == STATE_UNKNOWN
 
-    fake_app.send(b'{"type": "state", "state": {"games": 1e999, "copies": 3}}\n')
+    huge = b"1" + b"0" * 400
+    fake_app.send(
+        b'{"type": "state", "state": {"games": 1e999, "wishlist": ' + huge + b', "copies": 3}}\n'
+    )
     await until(hass, lambda: hass.states.get("sensor.memory_card_copies").state == "3")
     assert hass.states.get("sensor.memory_card_games").state == STATE_UNKNOWN
+    assert hass.states.get("sensor.memory_card_wishlist").state == STATE_UNKNOWN
 
 
 async def test_attributes_are_short_values_home_assistant_does_not_read_itself(

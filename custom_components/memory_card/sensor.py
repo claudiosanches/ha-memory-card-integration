@@ -1,6 +1,5 @@
 """Memory Card sensors: counts, titles and the current pick."""
 
-import math
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -79,7 +78,9 @@ def _number(value: Any) -> int | float | None:
     """Keep a finite number a float holds exactly; booleans are not numbers."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
-    return value if math.isfinite(value) and abs(value) < NUMBER_MAX else None
+    # Infinity and NaN fail the comparison too, and an integer too large for a
+    # float compares without converting.
+    return value if abs(value) < NUMBER_MAX else None
 
 
 def _plain(value: Any) -> str | int | float | None:
