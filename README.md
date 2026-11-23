@@ -18,13 +18,17 @@ entities match the ones the app's MQTT mode creates, IDs included.
 ## Requirements
 
 - Home Assistant 2026.3 or newer, with the Memory Card app 0.1.0 or newer.
-- [HACS](https://hacs.xyz).
+- The Marketplace, built into Home Assistant since 2026.11, or
+  [HACS](https://hacs.xyz) on older versions.
 
 ## Installation
 
-1. [Add this repository to HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=claudiosanches&repository=ha-memory-card-integration&category=integration)
-   as a custom repository of type **Integration**, download **Memory Card**,
-   and restart Home Assistant.
+[![Open your Home Assistant instance and open a repository in the Marketplace.][marketplace-shield]][marketplace]
+
+1. Select the button above to add this repository to the Marketplace as a
+   custom repository, which needs the Marketplace connected to GitHub. On
+   Home Assistant before 2026.11, the button adds it to HACS. Download
+   **Memory Card** and restart Home Assistant.
 2. In the Memory Card app's **Configuration** tab, set **Home Assistant
    sensors** to `integration`, save, and restart the app.
 3. Under **Settings > Devices & services**, Memory Card shows as discovered.
@@ -91,3 +95,5 @@ like the app. See [LICENSE](LICENSE).
 [github-actions-shield]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml/badge.svg
 [github-actions]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2026.svg
+[marketplace-shield]: https://my.home-assistant.io/badges/marketplace_repository.svg
+[marketplace]: https://my.home-assistant.io/redirect/marketplace_repository/?owner=claudiosanches&repository=ha-memory-card-integration&category=integration
