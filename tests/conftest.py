@@ -125,6 +125,7 @@ class FakeApp:
         self.state = copy.deepcopy(STATE)
         self.feeds: list[asyncio.Queue[dict[str, Any] | None]] = []
         self.rolls: list[Any] = []
+        self.roll_users: list[str | None] = []
         self.roll_answer: tuple[int, Any] = (
             200,
             {"title": "Celeste", "platforms": ["Nintendo Switch"]},
@@ -164,6 +165,7 @@ class FakeApp:
         if not self._authorized(request):
             return web.json_response({"code": "unauthorized"}, status=401)
         self.rolls.append(await request.json())
+        self.roll_users.append(request.headers.get("X-Home-Assistant-User"))
         status, body = self.roll_answer
         return web.json_response(body, status=status)
 

@@ -13,7 +13,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 import voluptuous as vol
 
-from .client import InvalidFilters, MemoryCardError, NoMatch
+from .client import InvalidFilters, MemoryCardError, NoMatch, NotAllowed
 from .const import DOMAIN
 from .hub import MemoryCardHub
 
@@ -32,10 +32,16 @@ ROLL_PICK_SCHEMA = vol.Schema(
 )
 
 
-async def async_roll(hub: MemoryCardHub, filters: dict[str, Any]) -> dict[str, Any]:
-    """Ask the app for a pick, with errors people can read."""
+async def async_roll(
+    hub: MemoryCardHub, filters: dict[str, Any], user_id: str | None
+) -> dict[str, Any]:
+    """Ask the app for a pick on behalf of a user, with errors people can read."""
     try:
-        return await hub.client.roll(filters)
+        return await hub.client.roll(filters, user_id)
+    except NotAllowed as err:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="manager_required"
+        ) from err
     except NoMatch as err:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="no_match") from err
     except InvalidFilters as err:
@@ -56,7 +62,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         entries = call.hass.config_entries.async_loaded_entries(DOMAIN)
         if not entries:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="not_loaded")
-        pick = await async_roll(entries[0].runtime_data, dict(call.data))
+        pick = await async_roll(entries[0].runtime_data, dict(call.data), call.context.user_id)
         return pick if call.return_response else None
 
     hass.services.async_register(

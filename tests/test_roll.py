@@ -2,11 +2,11 @@
 
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.setup import async_setup_component
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry, MockUser
 import voluptuous as vol
 
 from custom_components.memory_card.const import DOMAIN
@@ -84,3 +84,30 @@ async def test_diagnostics_leave_the_token_out(
     assert diagnostics["connected"] is True
     assert "games" in diagnostics["entities"]
     assert config_entry.data["token"] not in str(diagnostics)
+
+
+async def test_rolls_name_the_user_who_asked(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    fake_app: FakeApp,
+    hass_admin_user: MockUser,
+    hass_read_only_user: MockUser,
+) -> None:
+    await set_up(hass, config_entry)
+    await hass.services.async_call(
+        BUTTON_DOMAIN,
+        SERVICE_PRESS,
+        {ATTR_ENTITY_ID: "button.memory_card_roll_pick"},
+        blocking=True,
+        context=Context(user_id=hass_admin_user.id),
+    )
+    await hass.services.async_call(
+        DOMAIN, "roll_pick", {}, blocking=True, context=Context(user_id=hass_read_only_user.id)
+    )
+    await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
+    assert fake_app.roll_users == [hass_admin_user.id, hass_read_only_user.id, None]
+
+    fake_app.roll_answer = (403, {"code": "manager_required"})
+    with pytest.raises(ServiceValidationError) as raised:
+        await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
+    assert raised.value.translation_key == "manager_required"

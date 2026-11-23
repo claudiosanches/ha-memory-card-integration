@@ -89,6 +89,9 @@
     },
     "not_loaded": {
       "message": "Memory Card no está configurado."
+    },
+    "manager_required": {
+      "message": "Solo los gestores de Memory Card pueden sortear un juego."
     }
   }
 }

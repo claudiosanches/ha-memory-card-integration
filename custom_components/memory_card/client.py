@@ -9,6 +9,9 @@ from yarl import URL
 
 from .const import READ_TIMEOUT, REQUEST_TIMEOUT
 
+# The Home Assistant user behind a roll; automations send none.
+USER_HEADER = "X-Home-Assistant-User"
+
 
 class MemoryCardError(Exception):
     """The app could not be reached or answered something unexpected."""
@@ -24,6 +27,10 @@ class NoMatch(MemoryCardError):
 
 class InvalidFilters(MemoryCardError):
     """The app could not read the roll's filters."""
+
+
+class NotAllowed(MemoryCardError):
+    """Only Memory Card's managers, and automations once managers are set, may roll."""
 
 
 class MemoryCardClient:
@@ -55,13 +62,18 @@ class MemoryCardClient:
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
 
-    async def roll(self, filters: dict[str, Any]) -> dict[str, Any]:
-        """Pick a game; returns its title and platforms."""
+    async def roll(self, filters: dict[str, Any], user_id: str | None = None) -> dict[str, Any]:
+        """Pick a game for a Home Assistant user, or for an automation without one."""
+        headers = dict(self._headers)
+        if user_id:
+            headers[USER_HEADER] = user_id
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT.total_seconds())
         try:
             async with self._session.post(
-                self._base / "roll", headers=self._headers, json=filters, timeout=timeout
+                self._base / "roll", headers=headers, json=filters, timeout=timeout
             ) as response:
+                if response.status == 403:
+                    raise NotAllowed
                 if response.status == 404:
                     raise NoMatch
                 if response.status == 422:

@@ -89,6 +89,9 @@
     },
     "not_loaded": {
       "message": "Memory Card is not set up."
+    },
+    "manager_required": {
+      "message": "Only Memory Card's managers can roll a pick."
     }
   }
 }

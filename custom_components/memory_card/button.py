@@ -27,4 +27,4 @@ class MemoryCardButton(MemoryCardEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Roll with the default filters; the pick sensor shows the result."""
-        await async_roll(self.hub, {})
+        await async_roll(self.hub, {}, self._context.user_id if self._context else None)

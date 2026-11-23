@@ -68,6 +68,10 @@ response_variable: pick
 a list of them, as the app's forms show them. `min_local_players` is a
 number. The response holds the picked game's `title` and `platforms`.
 
+Like **Pick for me** in the app, the button and the action roll only once the
+app has managers. A person pressing or calling them must be one of those
+managers; an automation needs nothing more.
+
 ## Support
 
 Questions and bugs go to
