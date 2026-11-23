@@ -132,7 +132,7 @@ class MemoryCardHub:
                         if not self._handle(message):
                             continue
                         if failures:
-                            _LOGGER.info("Reconnected to Memory Card")
+                            _LOGGER.info("Memory Card is available again")
                         failures = 0
                         delay = RETRY_MIN.total_seconds()
                 error: MemoryCardError = MemoryCardError("the app closed the feed")
@@ -141,8 +141,11 @@ class MemoryCardHub:
             self._set_connected(False)
             if isinstance(error, (Unauthorized, UnsupportedApi)):
                 delay = RETRY_MAX.total_seconds()
-            if failures == 0:
-                _LOGGER.warning("Cannot reach Memory Card: %s", _explain(error))
+            if failures == 0 and isinstance(error, (Unauthorized, UnsupportedApi)):
+                _LOGGER.warning("Memory Card is unavailable: %s", _explain(error))
+            elif failures == 0:
+                # The app stops for updates and restarts, so this is no fault.
+                _LOGGER.info("Memory Card is unavailable: %s", _explain(error))
             else:
                 _LOGGER.debug("Cannot reach Memory Card: %s", _explain(error))
             failures += 1
