@@ -281,6 +281,35 @@ async def test_values_a_sensor_cannot_show_are_left_out(
     assert hass.states.get("sensor.memory_card_games").state == STATE_UNKNOWN
 
 
+async def test_attributes_are_short_values_home_assistant_does_not_read_itself(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    state = copy.deepcopy(STATE)
+    state["attributes"]["last_played"] = {
+        "date": "2026-11-22",
+        "platform": "p" * 300,
+        "entity_picture": "https://example.com/x.png",
+        "latitude": 1.5,
+        "state_class": "measurement",
+        "Bad Key": 1,
+        "nested": {"deep": [1]},
+        "games": ["Celeste", {"x": 1}, 2**60, *["t"] * 60],
+        **{f"extra_{n}": n for n in range(30)},
+    }
+    fake_app.send_state(state)
+    last_played = "sensor.memory_card_last_played"
+    await until(hass, lambda: hass.states.get(last_played).attributes["date"] == "2026-11-22")
+
+    attributes = hass.states.get(last_played).attributes
+    assert attributes["platform"] == "p" * 255
+    for name in ("entity_picture", "latitude", "state_class", "Bad Key"):
+        assert name not in attributes
+    assert attributes["nested"] is None
+    assert attributes["games"] == ["Celeste", *["t"] * 47]
+    assert sum(name.startswith("extra_") for name in attributes) == 16
+
+
 async def test_a_feed_with_nan_starts_over(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:

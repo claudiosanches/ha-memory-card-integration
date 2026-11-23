@@ -29,6 +29,31 @@ KNOWN_KEYS = frozenset(
 VALID_KEY = re.compile(r"[a-z0-9]+(?:_[a-z0-9]+)*")
 KEY_MAX = 64
 
+# Attributes Home Assistant reads itself, such as the picture it shows, the
+# place on the map and how statistics are kept, so the app cannot set them.
+RESERVED_ATTRIBUTES = frozenset(
+    {
+        "assumed_state",
+        "attribution",
+        "available",
+        "device_class",
+        "editable",
+        "entity_id",
+        "entity_picture",
+        "friendly_name",
+        "group_entities",
+        "icon",
+        "last_reset",
+        "latitude",
+        "longitude",
+        "options",
+        "restored",
+        "state_class",
+        "supported_features",
+        "unit_of_measurement",
+    }
+)
+
 # The app pings every 30 seconds.
 READ_TIMEOUT = timedelta(seconds=90)
 RETRY_MIN = timedelta(seconds=5)
