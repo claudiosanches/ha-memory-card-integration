@@ -162,3 +162,27 @@ async def test_unloading_closes_the_feed(
     assert await hass.config_entries.async_unload(config_entry.entry_id)
     await until(hass, lambda: not fake_app.feeds)
     assert config_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_a_feed_that_breaks_its_order_starts_over(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    with FAST_RETRY:
+        await set_up(hass, config_entry)
+        assert fake_app.connections == 1
+        fake_app.send({"type": "hello", "api": 1, "entities": []})
+        await until(hass, lambda: fake_app.connections == 2)
+        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
+    assert len(er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id)) == 9
+
+
+async def test_an_entity_list_past_the_cap_is_refused(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    fake_app.entities = [
+        {"key": f"sensor_{n}", "platform": "sensor", "name": f"Sensor {n}"} for n in range(65)
+    ]
+    with patch("custom_components.memory_card.SETUP_TIMEOUT", timedelta(milliseconds=200)):
+        await set_up(hass, config_entry)
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+    assert er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id) == []

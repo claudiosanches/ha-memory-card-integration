@@ -130,6 +130,9 @@ class FakeApp:
             200,
             {"title": "Celeste", "platforms": ["Nintendo Switch"]},
         )
+        self.roll_headers: dict[str, str] = {}
+        self.connections = 0
+        self.elsewhere = 0
 
     def _authorized(self, request: web.Request) -> bool:
         return request.headers.get("Authorization") == f"Bearer {self.token}"
@@ -141,6 +144,7 @@ class FakeApp:
         await response.prepare(request)
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
         self.feeds.append(queue)
+        self.connections += 1
         hello = {
             "type": "hello",
             "api": self.api,
@@ -167,7 +171,13 @@ class FakeApp:
         self.rolls.append(await request.json())
         self.roll_users.append(request.headers.get("X-Home-Assistant-User"))
         status, body = self.roll_answer
-        return web.json_response(body, status=status)
+        if isinstance(body, bytes):
+            return web.Response(body=body, status=status, headers=self.roll_headers)
+        return web.json_response(body, status=status, headers=self.roll_headers)
+
+    async def somewhere_else(self, request: web.Request) -> web.Response:
+        self.elsewhere += 1
+        return web.json_response({"title": "from elsewhere", "platforms": []})
 
     def send(self, message: dict[str, Any]) -> None:
         for queue in self.feeds:
@@ -198,6 +208,7 @@ async def fake_app(socket_enabled: None) -> AsyncIterator[FakeApp]:
     web_app = web.Application()
     web_app.router.add_get("/integration/v1/feed", app.feed)
     web_app.router.add_post("/integration/v1/roll", app.roll)
+    web_app.router.add_route("*", "/elsewhere", app.somewhere_else)
     server = TestServer(web_app, host="127.0.0.1")
     await server.start_server()
     app.port = server.port

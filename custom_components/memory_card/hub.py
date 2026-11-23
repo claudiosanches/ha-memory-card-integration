@@ -18,6 +18,8 @@ from .const import API_VERSION, CONF_SLUG, DOMAIN, RETRY_MAX, RETRY_MIN, VALID_K
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS_SENT = ("sensor", "button")
+# Far more than the app sends, so a broken feed cannot flood the registry.
+ENTITIES_MAX = 64
 
 
 class UnsupportedApi(MemoryCardError):
@@ -75,6 +77,7 @@ class MemoryCardHub:
         self.state: dict[str, Any] | None = None
         self.connected = False
         self._ready = asyncio.Event()
+        self._hello_due = True
         self._task: asyncio.Task[None] | None = None
 
     @property
@@ -127,6 +130,7 @@ class MemoryCardHub:
         failures = 0
         while True:
             try:
+                self._hello_due = True
                 async with aclosing(self.client.feed()) as feed:
                     async for message in feed:
                         if not self._handle(message):
@@ -155,9 +159,13 @@ class MemoryCardHub:
     def _handle(self, message: dict[str, Any]) -> bool:
         """Apply one message; returns whether it was the start of a feed."""
         kind = message.get("type")
+        # The entity list opens each feed and never comes again within it.
+        if (kind == "hello") != self._hello_due:
+            raise MemoryCardError("the feed did not start with its entities")
         if kind == "hello":
             if message.get("api") != API_VERSION:
                 raise UnsupportedApi(f"feed version {message.get('api')}")
+            self._hello_due = False
             self._hello(message)
             return True
         if kind == "state" and isinstance(message.get("state"), dict):
@@ -173,6 +181,8 @@ class MemoryCardHub:
         entities = message.get("entities")
         if not isinstance(entities, list):
             entities = []
+        if len(entities) > ENTITIES_MAX:
+            raise MemoryCardError(f"the app sent {len(entities)} entities")
         descriptions = (_description(raw) for raw in entities)
         self.descriptions = {d.key: d for d in descriptions if d is not None}
         self._remove_gone()

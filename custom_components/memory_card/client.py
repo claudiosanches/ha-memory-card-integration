@@ -11,6 +11,8 @@ from .const import READ_TIMEOUT, REQUEST_TIMEOUT
 
 # The Home Assistant user behind a roll; automations send none.
 USER_HEADER = "X-Home-Assistant-User"
+# A pick is a title and a few platform names.
+ROLL_MAX = 64 * 1024
 
 
 class MemoryCardError(Exception):
@@ -51,7 +53,10 @@ class MemoryCardClient:
         )
         try:
             async with self._session.get(
-                self._base / "feed", headers=self._headers, timeout=timeout
+                self._base / "feed",
+                headers=self._headers,
+                timeout=timeout,
+                allow_redirects=False,
             ) as response:
                 _check(response)
                 async for line in response.content:
@@ -70,7 +75,11 @@ class MemoryCardClient:
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT.total_seconds())
         try:
             async with self._session.post(
-                self._base / "roll", headers=headers, json=filters, timeout=timeout
+                self._base / "roll",
+                headers=headers,
+                json=filters,
+                timeout=timeout,
+                allow_redirects=False,
             ) as response:
                 if response.status == 403:
                     raise NotAllowed
@@ -79,12 +88,23 @@ class MemoryCardClient:
                 if response.status == 422:
                     raise InvalidFilters
                 _check(response)
-                pick = await response.json()
+                body = b""
+                async for chunk in response.content.iter_chunked(4096):
+                    body += chunk
+                    if len(body) > ROLL_MAX:
+                        raise MemoryCardError("the roll answer is too large")
+            pick = json.loads(body)
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
-        if not isinstance(pick, dict):
+        if not isinstance(pick, dict) or not isinstance(pick.get("title"), str):
             raise MemoryCardError("unexpected roll answer")
-        return pick
+        platforms = pick.get("platforms")
+        return {
+            "title": pick["title"],
+            "platforms": [p for p in platforms if isinstance(p, str)]
+            if isinstance(platforms, list)
+            else [],
+        }
 
 
 def _check(response: aiohttp.ClientResponse) -> None:

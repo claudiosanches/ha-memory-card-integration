@@ -111,3 +111,30 @@ async def test_rolls_name_the_user_who_asked(
     with pytest.raises(ServiceValidationError) as raised:
         await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
     assert raised.value.translation_key == "manager_required"
+
+
+async def test_a_roll_answer_is_never_followed_elsewhere_or_read_whole(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    fake_app.roll_answer = (307, b"")
+    fake_app.roll_headers = {"Location": f"http://127.0.0.1:{fake_app.port}/elsewhere"}
+    with pytest.raises(HomeAssistantError) as raised:
+        await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
+    assert raised.value.translation_key == "cannot_connect"
+    assert fake_app.elsewhere == 0
+
+    fake_app.roll_headers = {}
+    fake_app.roll_answer = (200, b'{"title": "' + b"x" * 70_000 + b'"}')
+    with pytest.raises(HomeAssistantError) as raised:
+        await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
+    assert raised.value.translation_key == "cannot_connect"
+
+    fake_app.roll_answer = (200, {"title": 3, "platforms": []})
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(DOMAIN, "roll_pick", {}, blocking=True)
+    fake_app.roll_answer = (200, {"title": "Hades", "platforms": ["PC", 4], "extra": 1})
+    response = await hass.services.async_call(
+        DOMAIN, "roll_pick", {}, blocking=True, return_response=True
+    )
+    assert response == {"title": "Hades", "platforms": ["PC"]}
