@@ -20,6 +20,8 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS_SENT = ("sensor", "button")
 # Far more than the app sends, so a broken feed cannot flood the registry.
 ENTITIES_MAX = 64
+# Names, icons, units and versions are short.
+TEXT_MAX = 100
 
 
 class UnsupportedApi(MemoryCardError):
@@ -39,6 +41,10 @@ class EntityDescription:
     attributes: bool
 
 
+def _text(value: Any) -> str | None:
+    return value[:TEXT_MAX] if isinstance(value, str) and value else None
+
+
 def _description(raw: Any) -> EntityDescription | None:
     if not isinstance(raw, dict):
         return None
@@ -49,17 +55,13 @@ def _description(raw: Any) -> EntityDescription | None:
     if platform not in PLATFORMS_SENT:
         return None
 
-    def text(field: str) -> str | None:
-        value = raw.get(field)
-        return value if isinstance(value, str) and value else None
-
     return EntityDescription(
         key=key,
         platform=platform,
-        name=text("name") or key,
-        icon=text("icon"),
-        unit=text("unit"),
-        state_class=text("state_class"),
+        name=_text(raw.get("name")) or key,
+        icon=_text(raw.get("icon")),
+        unit=_text(raw.get("unit")),
+        state_class=_text(raw.get("state_class")),
         attributes=raw.get("attributes") is True,
     )
 
@@ -100,9 +102,9 @@ class MemoryCardHub:
         """The one Memory Card device."""
         info = DeviceInfo(
             identifiers={(DOMAIN, DOMAIN)},
-            name=str(self.device.get("name") or "Memory Card"),
-            model=self.device.get("model"),
-            sw_version=self.device.get("sw_version"),
+            name=_text(self.device.get("name")) or "Memory Card",
+            model=_text(self.device.get("model")),
+            sw_version=_text(self.device.get("sw_version")),
         )
         if slug := self.entry.data.get(CONF_SLUG):
             info["configuration_url"] = f"homeassistant://hassio/ingress/{slug}"

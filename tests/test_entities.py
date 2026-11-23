@@ -254,3 +254,14 @@ async def test_a_feed_with_nan_starts_over(
         fake_app.send(b'{"type": "state", "state": {"games": NaN}}\n')
         await until(hass, lambda: fake_app.connections == 2)
         await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
+
+
+async def test_device_details_that_are_not_short_text_are_left_out(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    fake_app.device = {"name": {"nested": True}, "model": "m" * 500, "sw_version": 1}
+    await set_up(hass, config_entry)
+    [device] = dr.async_entries_for_config_entry(dr.async_get(hass), config_entry.entry_id)
+    assert device.name == "Memory Card"
+    assert device.model == "m" * 100
+    assert device.sw_version is None

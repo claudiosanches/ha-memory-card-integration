@@ -123,6 +123,11 @@ class FakeApp:
         self.token = TOKEN
         self.entities = copy.deepcopy(ENTITIES)
         self.state = copy.deepcopy(STATE)
+        self.device: Any = {
+            "name": "Memory Card",
+            "model": "Video game collection",
+            "sw_version": "0.1.0",
+        }
         self.feeds: list[asyncio.Queue[dict[str, Any] | bytes | None]] = []
         self.rolls: list[Any] = []
         self.roll_users: list[str | None] = []
@@ -149,11 +154,7 @@ class FakeApp:
             "type": "hello",
             "api": self.api,
             "version": "0.1.0",
-            "device": {
-                "name": "Memory Card",
-                "model": "Video game collection",
-                "sw_version": "0.1.0",
-            },
+            "device": self.device,
             "entities": self.entities,
         }
         try:
