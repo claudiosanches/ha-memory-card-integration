@@ -143,6 +143,20 @@ async def test_new_entities_from_the_app_appear_and_dropped_ones_go(
     assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 9
 
 
+async def test_keys_that_make_no_entity_id_are_skipped(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    fake_app: FakeApp,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    for key in ("hours\n", "_hours", "hours_", "my__hours", "h" * 65):
+        fake_app.entities.append({"key": key, "platform": "sensor", "name": "Hours"})
+    await set_up(hass, config_entry)
+    registry = er.async_get(hass)
+    assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 9
+    assert "Invalid entity ID" not in caplog.text
+
+
 async def test_a_newer_feed_is_not_misread(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:

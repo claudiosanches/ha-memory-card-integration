@@ -25,8 +25,9 @@ KNOWN_KEYS = frozenset(
     }
 )
 
-# Keys become entity IDs, so anything else is skipped.
-VALID_KEY = re.compile(r"^[a-z0-9_]{1,64}$")
+# Keys become entity IDs, so they follow Home Assistant's rules for those.
+VALID_KEY = re.compile(r"[a-z0-9]+(?:_[a-z0-9]+)*")
+KEY_MAX = 64
 
 # The app pings every 30 seconds.
 READ_TIMEOUT = timedelta(seconds=90)

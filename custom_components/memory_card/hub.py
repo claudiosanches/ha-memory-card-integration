@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .client import MemoryCardClient, MemoryCardError, Unauthorized
-from .const import API_VERSION, CONF_SLUG, DOMAIN, RETRY_MAX, RETRY_MIN, VALID_KEY
+from .const import API_VERSION, CONF_SLUG, DOMAIN, KEY_MAX, RETRY_MAX, RETRY_MIN, VALID_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +45,11 @@ class EntityDescription:
     attributes: bool
 
 
+def valid_key(key: Any) -> bool:
+    """Whether a key from the app can name an entity."""
+    return isinstance(key, str) and len(key) <= KEY_MAX and VALID_KEY.fullmatch(key) is not None
+
+
 def _text(value: Any) -> str | None:
     return value[:TEXT_MAX] if isinstance(value, str) and value else None
 
@@ -54,7 +59,7 @@ def _description(raw: Any) -> EntityDescription | None:
         return None
     key = raw.get("key")
     platform = raw.get("platform")
-    if not isinstance(key, str) or not VALID_KEY.match(key):
+    if not valid_key(key):
         return None
     if platform not in PLATFORMS_SENT:
         return None
