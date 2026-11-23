@@ -1,6 +1,7 @@
 {
   "domain": "memory_card",
   "name": "Memory Card",
+  "categories": ["media_entertainment.gaming"],
   "codeowners": ["@claudiosanches"],
   "config_flow": true,
   "dependencies": [],
