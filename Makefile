@@ -1,5 +1,5 @@
 # Tests and lint run in a Python 3.14 container, so nothing is installed on the host.
-PYTHON_IMAGE ?= python:3.14-slim
+PYTHON_IMAGE ?= python:3.14-slim@sha256:9aaa474097d094040649f2162a627c0049b408f52138d980916788d80f04802f
 VENV := .venv-docker
 RUN := docker run --rm --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR)":/src -w /src $(PYTHON_IMAGE)
 
