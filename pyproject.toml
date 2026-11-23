@@ -2,7 +2,7 @@
 name = "ha-memory-card-integration"
 version = "0.1.0"
 description = "Home Assistant integration for the Memory Card app"
-license = "GPL-3.0-only"
+license = "GPL-3.0-or-later"
 requires-python = ">=3.14"
 
 [tool.pytest.ini_options]

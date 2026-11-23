@@ -1,5 +1,12 @@
 # Memory Card integration for Home Assistant
 
+[![GitHub Release][releases-shield]][releases]
+![Project Stage][project-stage-shield]
+[![License][license-shield]](LICENSE)
+
+[![GitHub Actions][github-actions-shield]][github-actions]
+![Project Maintenance][maintenance-shield]
+
 Brings the sensors and the Roll a pick button of the
 [Memory Card app](https://github.com/claudiosanches/ha-memory-card) into Home
 Assistant without an MQTT broker. Memory Card tracks a video game collection
@@ -70,4 +77,13 @@ or [Ko-fi](https://ko-fi.com/claudiosanches).
 
 ## License
 
-GPL-3.0, like the app.
+GNU General Public License, version 3 or (at your option) any later version,
+like the app. See [LICENSE](LICENSE).
+
+[releases-shield]: https://img.shields.io/github/v/release/claudiosanches/ha-memory-card-integration.svg
+[releases]: https://github.com/claudiosanches/ha-memory-card-integration/releases
+[project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
+[license-shield]: https://img.shields.io/github/license/claudiosanches/ha-memory-card-integration.svg
+[github-actions-shield]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml/badge.svg
+[github-actions]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2026.svg
