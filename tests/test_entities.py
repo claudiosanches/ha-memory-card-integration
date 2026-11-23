@@ -8,9 +8,11 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_UNIT_OF_MEASUREMENT, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.memory_card.const import DOMAIN
+from custom_components.memory_card.hub import MemoryCardHub
 
 from .conftest import STATE, FakeApp, set_up, until
 
@@ -186,3 +188,36 @@ async def test_an_entity_list_past_the_cap_is_refused(
         await set_up(hass, config_entry)
     assert config_entry.state is ConfigEntryState.SETUP_RETRY
     assert er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id) == []
+
+
+async def test_a_feed_line_too_deep_to_read_starts_over(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    with FAST_RETRY:
+        await set_up(hass, config_entry)
+        fake_app.send(b"[" * 65_000 + b"]" * 65_000 + b"\n")
+        await until(hass, lambda: fake_app.connections == 2)
+        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
+
+
+async def test_any_fault_while_reading_starts_the_feed_over(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    fake_app: FakeApp,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    real = MemoryCardHub._remove_gone
+    calls = 0
+
+    def fails_once(hub: MemoryCardHub) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("boom")
+        real(hub)
+
+    with FAST_RETRY, patch.object(MemoryCardHub, "_remove_gone", fails_once):
+        await set_up(hass, config_entry)
+        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
+    assert fake_app.connections == 2
+    assert "Memory Card's feed failed" in caplog.text

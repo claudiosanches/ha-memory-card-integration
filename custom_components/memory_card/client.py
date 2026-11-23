@@ -64,7 +64,8 @@ class MemoryCardClient:
                         message = json.loads(line)
                         if isinstance(message, dict):
                             yield message
-        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        # Deeply nested JSON raises RecursionError.
+        except (aiohttp.ClientError, TimeoutError, ValueError, RecursionError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
 
     async def roll(self, filters: dict[str, Any], user_id: str | None = None) -> dict[str, Any]:
@@ -94,7 +95,7 @@ class MemoryCardClient:
                     if len(body) > ROLL_MAX:
                         raise MemoryCardError("the roll answer is too large")
             pick = json.loads(body)
-        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        except (aiohttp.ClientError, TimeoutError, ValueError, RecursionError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
         if not isinstance(pick, dict) or not isinstance(pick.get("title"), str):
             raise MemoryCardError("unexpected roll answer")

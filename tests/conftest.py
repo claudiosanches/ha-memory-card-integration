@@ -123,7 +123,7 @@ class FakeApp:
         self.token = TOKEN
         self.entities = copy.deepcopy(ENTITIES)
         self.state = copy.deepcopy(STATE)
-        self.feeds: list[asyncio.Queue[dict[str, Any] | None]] = []
+        self.feeds: list[asyncio.Queue[dict[str, Any] | bytes | None]] = []
         self.rolls: list[Any] = []
         self.roll_users: list[str | None] = []
         self.roll_answer: tuple[int, Any] = (
@@ -142,7 +142,7 @@ class FakeApp:
             return web.json_response({"code": "unauthorized"}, status=401)
         response = web.StreamResponse(headers={"Content-Type": "application/x-ndjson"})
         await response.prepare(request)
-        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+        queue: asyncio.Queue[dict[str, Any] | bytes | None] = asyncio.Queue()
         self.feeds.append(queue)
         self.connections += 1
         hello = {
@@ -160,7 +160,7 @@ class FakeApp:
             for message in (hello, {"type": "state", "state": self.state}):
                 await response.write(_line(message))
             while (message := await queue.get()) is not None:
-                await response.write(_line(message))
+                await response.write(message if isinstance(message, bytes) else _line(message))
         finally:
             self.feeds.remove(queue)
         return response
@@ -179,7 +179,7 @@ class FakeApp:
         self.elsewhere += 1
         return web.json_response({"title": "from elsewhere", "platforms": []})
 
-    def send(self, message: dict[str, Any]) -> None:
+    def send(self, message: dict[str, Any] | bytes) -> None:
         for queue in self.feeds:
             queue.put_nowait(message)
 

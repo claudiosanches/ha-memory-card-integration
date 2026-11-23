@@ -142,6 +142,11 @@ class MemoryCardHub:
                 error: MemoryCardError = MemoryCardError("the app closed the feed")
             except MemoryCardError as err:
                 error = err
+            except Exception as err:
+                # A fault must not end the feed for good.
+                if failures == 0:
+                    _LOGGER.exception("Memory Card's feed failed")
+                error = MemoryCardError(type(err).__name__)
             self._set_connected(False)
             if isinstance(error, (Unauthorized, UnsupportedApi)):
                 delay = RETRY_MAX.total_seconds()
