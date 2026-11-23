@@ -1,8 +1,10 @@
 """Memory Card sensors: counts, titles and the current pick."""
 
+import math
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.const import MAX_LENGTH_STATE_STATE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -11,6 +13,8 @@ from .entity import MemoryCardEntity, follow_entities
 from .hub import EntityDescription, MemoryCardHub
 
 PARALLEL_UPDATES = 0
+# Counts stay far below it; past it a float loses whole numbers.
+NUMBER_MAX = 2**53
 
 
 async def async_setup_entry(
@@ -38,7 +42,14 @@ class MemoryCardSensor(MemoryCardEntity, SensorEntity):
     def native_value(self) -> Any:
         """The value under this sensor's key."""
         value = (self.hub.state or {}).get(self.description.key)
-        return value if isinstance(value, (int, float, str)) else None
+        numeric = self.description.unit is not None or self.description.state_class is not None
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return value if math.isfinite(value) and abs(value) < NUMBER_MAX else None
+        if isinstance(value, str) and not numeric:
+            return value[:MAX_LENGTH_STATE_STATE]
+        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

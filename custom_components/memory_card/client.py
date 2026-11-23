@@ -61,7 +61,7 @@ class MemoryCardClient:
                 _check(response)
                 async for line in response.content:
                     if line.strip():
-                        message = json.loads(line)
+                        message = json.loads(line, parse_constant=_not_a_number)
                         if isinstance(message, dict):
                             yield message
         # Deeply nested JSON raises RecursionError.
@@ -106,6 +106,10 @@ class MemoryCardClient:
             if isinstance(platforms, list)
             else [],
         }
+
+
+def _not_a_number(name: str) -> Any:
+    raise ValueError(f"the feed sent {name}, which JSON does not allow")
 
 
 def _check(response: aiohttp.ClientResponse) -> None:

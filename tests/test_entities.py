@@ -5,7 +5,12 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_UNIT_OF_MEASUREMENT, STATE_UNAVAILABLE
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    ATTR_UNIT_OF_MEASUREMENT,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 import pytest
@@ -221,3 +226,31 @@ async def test_any_fault_while_reading_starts_the_feed_over(
         await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
     assert fake_app.connections == 2
     assert "Memory Card's feed failed" in caplog.text
+
+
+async def test_values_a_sensor_cannot_show_are_left_out(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    state = copy.deepcopy(STATE)
+    state["games"] = True
+    state["copies"] = "many"
+    state["pick"] = "x" * 300
+    fake_app.send_state(state)
+    await until(hass, lambda: hass.states.get("sensor.memory_card_pick").state == "x" * 255)
+    assert hass.states.get("sensor.memory_card_games").state == STATE_UNKNOWN
+    assert hass.states.get("sensor.memory_card_copies").state == STATE_UNKNOWN
+
+    fake_app.send(b'{"type": "state", "state": {"games": 1e999, "copies": 3}}\n')
+    await until(hass, lambda: hass.states.get("sensor.memory_card_copies").state == "3")
+    assert hass.states.get("sensor.memory_card_games").state == STATE_UNKNOWN
+
+
+async def test_a_feed_with_nan_starts_over(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    with FAST_RETRY:
+        await set_up(hass, config_entry)
+        fake_app.send(b'{"type": "state", "state": {"games": NaN}}\n')
+        await until(hass, lambda: fake_app.connections == 2)
+        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
