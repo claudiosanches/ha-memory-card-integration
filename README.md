@@ -17,18 +17,15 @@ entities match the ones the app's MQTT mode creates, IDs included.
 
 ## Requirements
 
-- Home Assistant 2026.3 or newer, with the Memory Card app 0.1.0 or newer.
-- The Marketplace, built into Home Assistant since 2026.11, or
-  [HACS](https://hacs.xyz) on older versions.
+- Home Assistant 2026.11 or newer, with the Memory Card app 0.1.0 or newer.
 
 ## Installation
 
 [![Open your Home Assistant instance and open a repository in the Marketplace.][marketplace-shield]][marketplace]
 
 1. Select the button above to add this repository to the Marketplace as a
-   custom repository, which needs the Marketplace connected to GitHub. On
-   Home Assistant before 2026.11, the button adds it to HACS. Download
-   **Memory Card** and restart Home Assistant.
+   custom repository, which needs the Marketplace connected to GitHub.
+   Download **Memory Card** and restart Home Assistant.
 2. In the Memory Card app's **Configuration** tab, set **Home Assistant
    sensors** to `integration`, save, and restart the app.
 3. Under **Settings > Devices & services**, Memory Card shows as discovered.
