@@ -1,12 +1,17 @@
 """Set up Memory Card when the app announces itself."""
 
+import re
 from typing import Any
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_TOKEN
 from homeassistant.helpers.service_info.hassio import HassioServiceInfo
+from yarl import URL
 
 from .const import CONF_SLUG, DOMAIN
+
+# The app's token: 32 random bytes as hex.
+TOKEN = re.compile(r"[0-9a-f]{64}")
 
 
 def _entry_data(discovery: HassioServiceInfo) -> dict[str, Any]:
@@ -18,6 +23,21 @@ def _entry_data(discovery: HassioServiceInfo) -> dict[str, Any]:
     }
 
 
+def _valid(config: dict[str, Any]) -> bool:
+    """Whether the announcement holds an address the client can use and the app's token."""
+    host, port, token = config.get(CONF_HOST), config.get(CONF_PORT), config.get(CONF_TOKEN)
+    if not (isinstance(host, str) and host and isinstance(token, str) and TOKEN.fullmatch(token)):
+        return False
+    # bool is an int too.
+    if type(port) is not int or not 1 <= port <= 65535:
+        return False
+    try:
+        URL.build(scheme="http", host=host, port=port)
+    except ValueError:
+        return False
+    return True
+
+
 class MemoryCardConfigFlow(ConfigFlow, domain=DOMAIN):
     """Only the app's Supervisor discovery sets Memory Card up."""
 
@@ -27,12 +47,7 @@ class MemoryCardConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_hassio(self, discovery_info: HassioServiceInfo) -> ConfigFlowResult:
         """Take the app's announcement; an existing entry gets the new details."""
-        config = discovery_info.config
-        if not (
-            isinstance(config.get(CONF_HOST), str)
-            and isinstance(config.get(CONF_PORT), int)
-            and isinstance(config.get(CONF_TOKEN), str)
-        ):
+        if not _valid(discovery_info.config):
             return self.async_abort(reason="invalid_discovery")
         # Home Assistant removes the entry when the app withdraws this message.
         await self.async_set_unique_id(discovery_info.uuid)

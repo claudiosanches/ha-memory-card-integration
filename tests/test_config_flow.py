@@ -5,6 +5,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers.service_info.hassio import HassioServiceInfo
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.memory_card.const import CONF_SLUG, DOMAIN
@@ -68,9 +69,27 @@ async def test_a_new_announcement_updates_the_entry(
     assert config_entry.data[CONF_HOST] == "local-memory-card"
 
 
-async def test_an_announcement_without_a_token_is_refused(hass: HomeAssistant) -> None:
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"token": None},
+        {"token": ""},
+        {"token": "g" * 64},
+        {"token": "a" * 63},
+        {"token": "a" * 64 + "\r\nX-Evil: 1"},
+        {"port": True},
+        {"port": 0},
+        {"port": 70000},
+        {"port": "8100"},
+        {"host": ""},
+        {"host": "bad host/name"},
+    ],
+)
+async def test_an_announcement_with_unusable_details_is_refused(
+    hass: HomeAssistant, config: dict[str, object]
+) -> None:
     info = discovery(8100)
-    del info.config["token"]
+    info.config.update(config)
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_HASSIO}, data=info
     )
