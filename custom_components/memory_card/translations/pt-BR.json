@@ -23,20 +23,23 @@
       "wishlist": {
         "name": "Lista de desejos"
       },
-      "backlog": {
-        "name": "Backlog"
-      },
       "playing": {
         "name": "Jogando"
-      },
-      "last_played": {
-        "name": "Último jogado"
       },
       "last_added": {
         "name": "Último adicionado"
       },
       "pick": {
         "name": "Sugestão atual"
+      },
+      "person_backlog": {
+        "name": "{person}: backlog"
+      },
+      "person_playing": {
+        "name": "{person}: jogando"
+      },
+      "person_last_played": {
+        "name": "{person}: último jogado"
       }
     },
     "button": {
@@ -48,8 +51,12 @@
   "services": {
     "roll_pick": {
       "name": "Sortear um jogo",
-      "description": "Sorteia um jogo da coleção, como o \"Escolha por mim\" da página Backlog. Sem filtros, sorteia do backlog.",
+      "description": "Sorteia um jogo da coleção a partir do backlog de uma pessoa, como \"Escolha por mim\" na página de backlog. Sem filtros, escolhe no backlog dela.",
       "fields": {
+        "person": {
+          "name": "Pessoa",
+          "description": "De qual backlog escolher. Deixe vazio para sortear para você; uma automação precisa indicar alguém."
+        },
         "play_status": {
           "name": "Status de jogo",
           "description": "Chaves dos status de jogo para sortear. Vazio significa todos os status que contam como backlog."
@@ -90,8 +97,17 @@
     "not_loaded": {
       "message": "O Memory Card não está configurado."
     },
-    "manager_required": {
-      "message": "Apenas os gestores do Memory Card podem sortear um jogo."
+    "person_required": {
+      "message": "Diga para quem sortear um jogo."
+    },
+    "play_not_allowed": {
+      "message": "O Memory Card não registra partidas para esta pessoa."
+    },
+    "not_your_roll": {
+      "message": "Você só pode sortear um jogo para você."
+    },
+    "unknown_person": {
+      "message": "Esta pessoa não tem usuário do Home Assistant."
     }
   }
 }

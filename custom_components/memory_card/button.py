@@ -23,8 +23,8 @@ async def async_setup_entry(
 
 
 class MemoryCardButton(MemoryCardEntity, ButtonEntity):
-    """Picks a random game from the backlog, as the app's Pick for me does."""
+    """Picks a random game from the presser's backlog, as the app's Pick for me does."""
 
     async def async_press(self) -> None:
-        """Roll with the default filters; the pick sensor shows the result."""
+        """Roll for whoever pressed it; the pick sensor shows the result."""
         await async_roll(self.hub, {}, self._context.user_id if self._context else None)

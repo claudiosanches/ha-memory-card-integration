@@ -23,20 +23,23 @@
       "wishlist": {
         "name": "Wishlist"
       },
-      "backlog": {
-        "name": "Backlog"
-      },
       "playing": {
         "name": "Playing"
-      },
-      "last_played": {
-        "name": "Last played"
       },
       "last_added": {
         "name": "Last added"
       },
       "pick": {
         "name": "Current pick"
+      },
+      "person_backlog": {
+        "name": "{person} backlog"
+      },
+      "person_playing": {
+        "name": "{person} playing"
+      },
+      "person_last_played": {
+        "name": "{person} last played"
       }
     },
     "button": {
@@ -48,8 +51,12 @@
   "services": {
     "roll_pick": {
       "name": "Roll a pick",
-      "description": "Picks a random owned game, as \"Pick for me\" on the Backlog page does. Without filters it picks from the backlog.",
+      "description": "Picks a random owned game from a person's backlog, as \"Pick for me\" on the Backlog page does. Without filters it picks from their backlog.",
       "fields": {
+        "person": {
+          "name": "Person",
+          "description": "Whose backlog to pick from. Leave it out to roll for yourself; an automation must name someone."
+        },
         "play_status": {
           "name": "Play statuses",
           "description": "Play status keys to pick from. Empty means every status that counts as backlog."
@@ -90,8 +97,17 @@
     "not_loaded": {
       "message": "Memory Card is not set up."
     },
-    "manager_required": {
-      "message": "Only Memory Card's managers can roll a pick."
+    "person_required": {
+      "message": "Name a person to roll a pick for."
+    },
+    "play_not_allowed": {
+      "message": "Memory Card does not keep play for this person."
+    },
+    "not_your_roll": {
+      "message": "You can only roll a pick for yourself."
+    },
+    "unknown_person": {
+      "message": "This person has no Home Assistant user."
     }
   }
 }

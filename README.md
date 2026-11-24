@@ -37,29 +37,40 @@ integration's entry and entities on the app's next start.
 
 ## Entities
 
+The household's:
+
 | Entity | State |
 |---|---|
 | `sensor.memory_card_games` | Games with at least one owned copy |
 | `sensor.memory_card_copies` | Owned copies |
 | `sensor.memory_card_wishlist` | Copies on the wishlist |
-| `sensor.memory_card_backlog` | Owned games in a status that counts as backlog |
-| `sensor.memory_card_playing` | Owned games in a status that counts as playing |
-| `sensor.memory_card_last_played` | Title of the game with the latest play session |
+| `sensor.memory_card_playing` | Owned games someone is playing |
 | `sensor.memory_card_last_added` | Title of the game whose owned copy was added last |
-| `sensor.memory_card_pick` | Title of the latest random pick |
-| `button.memory_card_roll_pick` | Picks a random owned game from the backlog |
+| `sensor.memory_card_pick` | Title of the latest random pick, with whose it is |
+| `button.memory_card_roll_pick` | Picks a random owned game from the presser's backlog |
+
+Each person who keeps play in Memory Card, up to 16, also gets their own,
+named after them, such as `sensor.memory_card_ana_backlog`:
+
+| Entity | State |
+|---|---|
+| `sensor.memory_card_<name>_backlog` | Their owned games in a status that counts as backlog |
+| `sensor.memory_card_<name>_playing` | Their owned games in a status that counts as playing |
+| `sensor.memory_card_<name>_last_played` | Title of the game they last played |
 
 The app's documentation lists their attributes. Values update about a second
 after each change, and the entities are unavailable while the app is stopped.
 
 ## Action
 
-`memory_card.roll_pick` picks a random owned game. Without fields it picks
-from the backlog, like the button. The fields narrow it down:
+`memory_card.roll_pick` picks a random owned game from one person's backlog.
+Called by a person, it rolls for them; an automation names whose backlog with
+`person`. The other fields narrow it down:
 
 ```yaml
 action: memory_card.roll_pick
 data:
+  person: person.ana
   device: switch
   min_local_players: 2
 response_variable: pick
@@ -69,9 +80,9 @@ response_variable: pick
 a list of them, as the app's forms show them. `min_local_players` is a
 number. The response holds the picked game's `title` and `platforms`.
 
-Like **Pick for me** in the app, the button and the action roll only once the
-app has managers. A person pressing or calling them must be one of those
-managers; an automation needs nothing more.
+Like **Pick for me** in the app, a roll needs the app to have managers, and
+the person to be one of them or a viewer the app lets keep play. A person
+rolls only for themselves.
 
 ## Support
 

@@ -35,11 +35,12 @@ async def test_every_entity_keeps_the_id_the_mqtt_one_had(
     entities = er.async_entries_for_config_entry(registry, config_entry.entry_id)
     assert sorted(entity.entity_id for entity in entities) == [
         "button.memory_card_roll_pick",
-        "sensor.memory_card_backlog",
+        "sensor.memory_card_ana_backlog",
+        "sensor.memory_card_ana_last_played",
+        "sensor.memory_card_ana_playing",
         "sensor.memory_card_copies",
         "sensor.memory_card_games",
         "sensor.memory_card_last_added",
-        "sensor.memory_card_last_played",
         "sensor.memory_card_pick",
         "sensor.memory_card_playing",
         "sensor.memory_card_wishlist",
@@ -55,9 +56,14 @@ async def test_every_entity_keeps_the_id_the_mqtt_one_had(
 
     playing = hass.states.get("sensor.memory_card_playing")
     assert playing.attributes["games"] == ["Celeste"]
-    last_played = hass.states.get("sensor.memory_card_last_played")
+    last_played = hass.states.get("sensor.memory_card_ana_last_played")
     assert last_played.state == "Celeste"
     assert last_played.attributes["platform"] == "Nintendo Switch"
+    assert last_played.attributes[ATTR_FRIENDLY_NAME] == "Memory Card Ana last played"
+    assert (
+        registry.async_get("sensor.memory_card_ana_backlog").unique_id
+        == "memory_card_person_ana_backlog"
+    )
     assert hass.states.get("sensor.memory_card_pick").state == "unknown"
     assert (
         hass.states.get("button.memory_card_roll_pick").attributes[ATTR_FRIENDLY_NAME]
@@ -140,7 +146,7 @@ async def test_new_entities_from_the_app_appear_and_dropped_ones_go(
     registry = er.async_get(hass)
     assert registry.async_get("sensor.memory_card_wishlist") is None
     assert hass.states.get("sensor.memory_card_wishlist") is None
-    assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 9
+    assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 10
 
 
 async def test_keys_that_make_no_entity_id_are_skipped(
@@ -153,7 +159,7 @@ async def test_keys_that_make_no_entity_id_are_skipped(
         fake_app.entities.append({"key": key, "platform": "sensor", "name": "Hours"})
     await set_up(hass, config_entry)
     registry = er.async_get(hass)
-    assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 9
+    assert len(er.async_entries_for_config_entry(registry, config_entry.entry_id)) == 10
     assert "Invalid entity ID" not in caplog.text
 
 
@@ -186,16 +192,30 @@ async def test_unloading_closes_the_feed(
     assert config_entry.state is ConfigEntryState.NOT_LOADED
 
 
-async def test_a_feed_that_breaks_its_order_starts_over(
+async def test_a_new_entity_list_adds_and_drops_entities_without_starting_over(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
-    with FAST_RETRY:
-        await set_up(hass, config_entry)
-        assert fake_app.connections == 1
-        fake_app.send({"type": "hello", "api": 1, "entities": []})
-        await until(hass, lambda: fake_app.connections == 2)
-        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
-    assert len(er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id)) == 9
+    await set_up(hass, config_entry)
+    registry = er.async_get(hass)
+    bo = [
+        {
+            **entity,
+            "key": entity["key"].replace("ana", "bo"),
+            "object_id": entity["object_id"].replace("ana", "bo"),
+            "person": {"name": "Bo", "kind": entity["person"]["kind"]},
+        }
+        for entity in fake_app.entities
+        if "person" in entity
+    ]
+    household = [entity for entity in fake_app.entities if "person" not in entity]
+    fake_app.send({"type": "hello", "api": 1, "entities": household + bo})
+    await until(hass, lambda: registry.async_get("sensor.memory_card_bo_backlog") is not None)
+    assert registry.async_get("sensor.memory_card_ana_backlog") is None
+    assert fake_app.connections == 1
+    assert (
+        hass.states.get("sensor.memory_card_bo_backlog").attributes[ATTR_FRIENDLY_NAME]
+        == "Memory Card Bo backlog"
+    )
 
 
 async def test_an_entity_list_past_the_cap_is_refused(
@@ -290,7 +310,7 @@ async def test_attributes_are_short_values_home_assistant_does_not_read_itself(
 ) -> None:
     await set_up(hass, config_entry)
     state = copy.deepcopy(STATE)
-    state["attributes"]["last_played"] = {
+    state["attributes"]["person_ana_last_played"] = {
         "date": "2026-11-22",
         "platform": "p" * 300,
         "entity_picture": "https://example.com/x.png",
@@ -302,7 +322,7 @@ async def test_attributes_are_short_values_home_assistant_does_not_read_itself(
         **{f"extra_{n}": n for n in range(30)},
     }
     fake_app.send_state(state)
-    last_played = "sensor.memory_card_last_played"
+    last_played = "sensor.memory_card_ana_last_played"
     await until(hass, lambda: hass.states.get(last_played).attributes["date"] == "2026-11-22")
 
     attributes = hass.states.get(last_played).attributes

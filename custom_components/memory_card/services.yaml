@@ -1,5 +1,9 @@
 roll_pick:
   fields:
+    person:
+      selector:
+        entity:
+          domain: person
     play_status:
       selector:
         text:

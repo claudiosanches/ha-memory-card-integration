@@ -26,6 +26,8 @@ ENTITIES_MAX = 64
 UPDATE_COOLDOWN = 1.0
 # Names, icons, units and versions are short.
 TEXT_MAX = 100
+# What a person's own sensors are, each with a translated name.
+PERSON_KINDS = ("backlog", "playing", "last_played")
 
 
 class UnsupportedApi(MemoryCardError):
@@ -43,6 +45,11 @@ class EntityDescription:
     unit: str | None
     state_class: str | None
     attributes: bool
+    # What follows memory_card_ in the entity ID.
+    object_id: str
+    # A person's own sensor: their name and which of theirs it is.
+    person: str | None = None
+    kind: str | None = None
 
 
 def valid_key(key: Any) -> bool:
@@ -63,6 +70,13 @@ def _description(raw: Any) -> EntityDescription | None:
         return None
     if platform not in PLATFORMS_SENT:
         return None
+    object_id = raw.get("object_id")
+    if not valid_key(object_id):
+        object_id = key
+    person, kind = None, None
+    if isinstance(raw.get("person"), dict) and raw["person"].get("kind") in PERSON_KINDS:
+        person = _text(raw["person"].get("name"))
+        kind = raw["person"]["kind"] if person else None
 
     return EntityDescription(
         key=key,
@@ -72,6 +86,9 @@ def _description(raw: Any) -> EntityDescription | None:
         unit=_text(raw.get("unit")),
         state_class=_text(raw.get("state_class")),
         attributes=raw.get("attributes") is True,
+        object_id=object_id,
+        person=person,
+        kind=kind,
     )
 
 
@@ -179,15 +196,17 @@ class MemoryCardHub:
     def _handle(self, message: dict[str, Any]) -> bool:
         """Apply one message; returns whether it was the start of a feed."""
         kind = message.get("type")
-        # The entity list opens each feed and never comes again within it.
-        if (kind == "hello") != self._hello_due:
+        # The entity list opens each feed, and comes again when the people
+        # who keep play change.
+        if self._hello_due and kind != "hello":
             raise MemoryCardError("the feed did not start with its entities")
         if kind == "hello":
             if message.get("api") != API_VERSION:
                 raise UnsupportedApi(f"feed version {message.get('api')}")
+            started = self._hello_due
             self._hello_due = False
             self._hello(message)
-            return True
+            return started
         if kind == "state" and isinstance(message.get("state"), dict):
             self.state = message["state"]
             self._ready.set()

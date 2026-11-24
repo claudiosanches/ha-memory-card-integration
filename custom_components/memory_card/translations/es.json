@@ -23,20 +23,23 @@
       "wishlist": {
         "name": "Lista de deseos"
       },
-      "backlog": {
-        "name": "Pendientes"
-      },
       "playing": {
         "name": "Jugando"
-      },
-      "last_played": {
-        "name": "Último jugado"
       },
       "last_added": {
         "name": "Último añadido"
       },
       "pick": {
         "name": "Sugerencia actual"
+      },
+      "person_backlog": {
+        "name": "{person}: pendientes"
+      },
+      "person_playing": {
+        "name": "{person}: jugando"
+      },
+      "person_last_played": {
+        "name": "{person}: último jugado"
       }
     },
     "button": {
@@ -48,8 +51,12 @@
   "services": {
     "roll_pick": {
       "name": "Sortear un juego",
-      "description": "Elige al azar un juego que tienes, como hace \"Elige por mí\" en la página Pendientes. Sin filtros, elige entre los pendientes.",
+      "description": "Sortea un juego propio de los pendientes de una persona, como \"Elige por mí\" en la página de pendientes. Sin filtros, elige entre sus pendientes.",
       "fields": {
+        "person": {
+          "name": "Persona",
+          "description": "De qué pendientes elegir. Déjalo vacío para sortear para ti; una automatización debe indicar a alguien."
+        },
         "play_status": {
           "name": "Estados de juego",
           "description": "Claves de los estados de juego entre los que elegir. Vacío significa todos los estados que cuentan como pendientes."
@@ -90,8 +97,17 @@
     "not_loaded": {
       "message": "Memory Card no está configurado."
     },
-    "manager_required": {
-      "message": "Solo los gestores de Memory Card pueden sortear un juego."
+    "person_required": {
+      "message": "Indica para quién sortear un juego."
+    },
+    "play_not_allowed": {
+      "message": "Memory Card no lleva el registro de juego de esta persona."
+    },
+    "not_your_roll": {
+      "message": "Solo puedes sortear un juego para ti."
+    },
+    "unknown_person": {
+      "message": "Esta persona no tiene usuario de Home Assistant."
     }
   }
 }

@@ -32,7 +32,20 @@ class InvalidFilters(MemoryCardError):
 
 
 class NotAllowed(MemoryCardError):
-    """Only Memory Card's managers, and automations once managers are set, may roll."""
+    """Memory Card refused the roll; `code` says why."""
+
+    def __init__(self, code: str) -> None:
+        """Keep the app's reason: play_not_allowed or not_your_roll."""
+        super().__init__(code)
+        self.code = code
+
+
+class PersonRequired(MemoryCardError):
+    """A roll with no Home Assistant user must name a person."""
+
+
+# Error answers are a short code.
+ERROR_MAX = 4096
 
 
 class MemoryCardClient:
@@ -68,25 +81,30 @@ class MemoryCardClient:
         except (aiohttp.ClientError, TimeoutError, ValueError, RecursionError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
 
-    async def roll(self, filters: dict[str, Any], user_id: str | None = None) -> dict[str, Any]:
-        """Pick a game for a Home Assistant user, or for an automation without one."""
+    async def roll(
+        self, filters: dict[str, Any], user_id: str | None = None, person: str | None = None
+    ) -> dict[str, Any]:
+        """Pick a game from a person's backlog: the user who asks, or the one named."""
         headers = dict(self._headers)
         if user_id:
             headers[USER_HEADER] = user_id
+        body = {**filters, "person": person} if person else filters
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT.total_seconds())
         try:
             async with self._session.post(
                 self._base / "roll",
                 headers=headers,
-                json=filters,
+                json=body,
                 timeout=timeout,
                 allow_redirects=False,
             ) as response:
                 if response.status == 403:
-                    raise NotAllowed
+                    raise NotAllowed(await _code(response))
                 if response.status == 404:
                     raise NoMatch
                 if response.status == 422:
+                    if await _code(response) in ("person_required", "invalid_user"):
+                        raise PersonRequired
                     raise InvalidFilters
                 _check(response)
                 body = b""
@@ -106,6 +124,16 @@ class MemoryCardClient:
             if isinstance(platforms, list)
             else [],
         }
+
+
+async def _code(response: aiohttp.ClientResponse) -> str:
+    """Read the error code from a short answer; an empty string when there is none."""
+    body = await response.content.read(ERROR_MAX)
+    try:
+        code = json.loads(body).get("code")
+    except ValueError, AttributeError:
+        return ""
+    return code if isinstance(code, str) else ""
 
 
 def _not_a_number(name: str) -> Any:

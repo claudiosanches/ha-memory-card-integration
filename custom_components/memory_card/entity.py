@@ -22,8 +22,11 @@ class MemoryCardEntity(Entity):
         self.hub = hub
         self.description = description
         self._attr_unique_id = f"{DOMAIN}_{description.key}"
-        self.entity_id = f"{description.platform}.{DOMAIN}_{description.key}"
-        if description.key in KNOWN_KEYS:
+        self.entity_id = f"{description.platform}.{DOMAIN}_{description.object_id}"
+        if description.kind is not None:
+            self._attr_translation_key = f"person_{description.kind}"
+            self._attr_translation_placeholders = {"person": description.person or ""}
+        elif description.key in KNOWN_KEYS:
             self._attr_translation_key = description.key
         else:
             self._attr_name = description.name
