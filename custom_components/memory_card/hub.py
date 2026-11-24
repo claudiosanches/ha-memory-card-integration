@@ -92,6 +92,21 @@ def _description(raw: Any) -> EntityDescription | None:
     )
 
 
+def _entities(message: dict[str, Any]) -> tuple[dict[str, Any], dict[str, EntityDescription]]:
+    """Read the device and entity descriptions in a hello."""
+    device = message.get("device")
+    entities = message.get("entities")
+    if not isinstance(entities, list):
+        entities = []
+    if len(entities) > ENTITIES_MAX:
+        raise MemoryCardError(f"the app sent {len(entities)} entities")
+    descriptions = (_description(raw) for raw in entities)
+    return (
+        device if isinstance(device, dict) else {},
+        {d.key: d for d in descriptions if d is not None},
+    )
+
+
 class MemoryCardHub:
     """The app's entities and state, updated from the feed."""
 
@@ -109,6 +124,10 @@ class MemoryCardHub:
         self._task: asyncio.Task[None] | None = None
         self._update = Debouncer(
             hass, _LOGGER, cooldown=UPDATE_COOLDOWN, immediate=True, function=self._send_update
+        )
+        self._next: tuple[dict[str, Any], dict[str, EntityDescription]] | None = None
+        self._entities = Debouncer(
+            hass, _LOGGER, cooldown=UPDATE_COOLDOWN, immediate=True, function=self._apply_entities
         )
 
     @property
@@ -152,6 +171,7 @@ class MemoryCardHub:
     async def stop(self) -> None:
         """Close the feed."""
         self._update.async_shutdown()
+        self._entities.async_shutdown()
         if self._task is not None:
             self._task.cancel()
             await asyncio.wait([self._task])
@@ -205,7 +225,12 @@ class MemoryCardHub:
                 raise UnsupportedApi(f"feed version {message.get('api')}")
             started = self._hello_due
             self._hello_due = False
-            self._hello(message)
+            self._next = _entities(message)
+            if started:
+                self._apply_entities(always=True)
+            else:
+                # The people who keep play changed; applied once a second at most.
+                self._entities.async_schedule_call()
             return started
         if kind == "state" and isinstance(message.get("state"), dict):
             self.state = message["state"]
@@ -216,16 +241,16 @@ class MemoryCardHub:
                 self._set_connected(True)
         return False
 
-    def _hello(self, message: dict[str, Any]) -> None:
-        device = message.get("device")
-        self.device = device if isinstance(device, dict) else {}
-        entities = message.get("entities")
-        if not isinstance(entities, list):
-            entities = []
-        if len(entities) > ENTITIES_MAX:
-            raise MemoryCardError(f"the app sent {len(entities)} entities")
-        descriptions = (_description(raw) for raw in entities)
-        self.descriptions = {d.key: d for d in descriptions if d is not None}
+    @callback
+    def _apply_entities(self, always: bool = False) -> None:
+        """Use the latest entity list, unless it is the one in use."""
+        if self._next is None:
+            return
+        self.device, descriptions = self._next
+        self._next = None
+        if descriptions == self.descriptions and not always:
+            return
+        self.descriptions = descriptions
         self._remove_gone()
         async_dispatcher_send(self.hass, self.signal_entities)
 

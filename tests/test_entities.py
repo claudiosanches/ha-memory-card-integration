@@ -218,6 +218,44 @@ async def test_a_new_entity_list_adds_and_drops_entities_without_starting_over(
     )
 
 
+async def test_a_burst_of_entity_lists_changes_the_entities_once_a_second(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    registry = er.async_get(hass)
+    household = [entity for entity in fake_app.entities if "person" not in entity]
+    ana = [entity for entity in fake_app.entities if "person" in entity]
+
+    def person(name: str) -> list[dict]:
+        return [
+            {
+                **entity,
+                "key": entity["key"].replace("ana", name.lower()),
+                "object_id": entity["object_id"].replace("ana", name.lower()),
+                "person": {"name": name, "kind": entity["person"]["kind"]},
+            }
+            for entity in ana
+        ]
+
+    applied = 0
+    real = MemoryCardHub._remove_gone
+
+    def counted(hub: MemoryCardHub) -> None:
+        nonlocal applied
+        applied += 1
+        real(hub)
+
+    with patch.object(MemoryCardHub, "_remove_gone", counted):
+        for n in range(49):
+            people = person("Bo") if n % 2 == 0 else ana
+            fake_app.send({"type": "hello", "api": 1, "entities": household + people})
+        fake_app.send({"type": "hello", "api": 1, "entities": household + person("Cy")})
+        await until(hass, lambda: registry.async_get("sensor.memory_card_cy_backlog") is not None)
+    assert registry.async_get("sensor.memory_card_ana_backlog") is None
+    assert applied == 2
+    assert fake_app.connections == 1
+
+
 async def test_an_entity_list_past_the_cap_is_refused(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
