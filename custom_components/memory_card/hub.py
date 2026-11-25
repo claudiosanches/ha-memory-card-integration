@@ -221,8 +221,11 @@ class MemoryCardHub:
         if self._hello_due and kind != "hello":
             raise MemoryCardError("the feed did not start with its entities")
         if kind == "hello":
-            if message.get("api") != API_VERSION:
-                raise UnsupportedApi(f"feed version {message.get('api')}")
+            api = message.get("api")
+            if api != API_VERSION:
+                # Only a number goes to the log.
+                version = api if type(api) is int else "that is not a number"
+                raise UnsupportedApi(f"feed version {version}")
             started = self._hello_due
             self._hello_due = False
             self._next = _entities(message)
