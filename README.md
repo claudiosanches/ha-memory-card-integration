@@ -17,7 +17,11 @@ entities match the ones the app's MQTT mode creates, IDs included.
 
 ## Requirements
 
-- Home Assistant 2026.11 or newer, with the Memory Card app 0.1.0 or newer.
+- Home Assistant 2026.11 or newer.
+- The Memory Card app 0.1.0 or newer. The button below adds its repository to
+  Home Assistant, where you install and start it.
+
+  [![Open your Home Assistant instance and show the add app repository dialog with a specific repository URL pre-filled.][app-shield]][app]
 
 ## Installation
 
@@ -110,5 +114,7 @@ Apache License, version 2.0, like the app and Home Assistant. See
 [github-actions-shield]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml/badge.svg
 [github-actions]: https://github.com/claudiosanches/ha-memory-card-integration/actions/workflows/ci.yml
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2026.svg
+[app-shield]: https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg
+[app]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fclaudiosanches%2Fha-memory-card
 [marketplace-shield]: https://my.home-assistant.io/badges/marketplace_repository.svg
 [marketplace]: https://my.home-assistant.io/redirect/marketplace_repository/?owner=claudiosanches&repository=ha-memory-card-integration&category=integration
