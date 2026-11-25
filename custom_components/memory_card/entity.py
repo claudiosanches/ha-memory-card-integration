@@ -62,8 +62,11 @@ def follow_entities(
             for key, description in hub.descriptions.items()
             if description.platform == platform and key not in added
         ]
-        # A key the app dropped and sent again needs a new entity.
-        added.intersection_update(hub.descriptions)
+        # A key the app dropped, or moved to another platform, and sent again
+        # needs a new entity.
+        added.intersection_update(
+            key for key, description in hub.descriptions.items() if description.platform == platform
+        )
         added.update(description.key for description in new)
         if new:
             async_add_entities(build(hub, description) for description in new)

@@ -218,6 +218,21 @@ async def test_a_new_entity_list_adds_and_drops_entities_without_starting_over(
     )
 
 
+async def test_a_key_moved_to_another_platform_and_back_comes_back(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    registry = er.async_get(hass)
+    entities = fake_app.entities
+    moved = [{**e, "platform": "button"} if e["key"] == "games" else e for e in entities]
+    fake_app.send({"type": "hello", "api": 1, "entities": moved})
+    await until(hass, lambda: registry.async_get("button.memory_card_games") is not None)
+    assert registry.async_get("sensor.memory_card_games") is None
+    fake_app.send({"type": "hello", "api": 1, "entities": entities})
+    await until(hass, lambda: registry.async_get("sensor.memory_card_games") is not None)
+    assert registry.async_get("button.memory_card_games") is None
+
+
 async def test_a_burst_of_entity_lists_changes_the_entities_once_a_second(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
