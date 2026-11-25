@@ -58,8 +58,9 @@ named after them, such as `sensor.memory_card_ana_backlog`:
 | `sensor.memory_card_<name>_playing` | Their owned games in a status that counts as playing |
 | `sensor.memory_card_<name>_last_played` | Title of the game they last played |
 
-The app's documentation lists their attributes. Values update about a second
-after each change, and the entities are unavailable while the app is stopped.
+[The app's guide](https://github.com/claudiosanches/ha-memory-card/blob/main/docs/sensors.md)
+lists their attributes. Values update about a second after each change, and
+the entities are unavailable while the app is stopped.
 
 ## Action
 
@@ -83,6 +84,12 @@ number. The response holds the picked game's `title` and `platforms`.
 Like **Pick for me** in the app, a roll needs the app to have managers, and
 the person to be one of them or a viewer the app lets keep play. A person
 rolls only for themselves.
+
+## More
+
+[Memory Card integration](https://github.com/claudiosanches/ha-memory-card/blob/main/docs/integration.md)
+in the app's guide compares it with MQTT, and has dashboard and automation
+examples, what each error means, and how to troubleshoot and remove it.
 
 ## Support
 
