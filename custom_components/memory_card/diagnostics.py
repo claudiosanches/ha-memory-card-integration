@@ -1,4 +1,4 @@
-"""Diagnostics for Memory Card, without the token."""
+"""Diagnostics for Memory Card, without the token or anyone's play."""
 
 from typing import Any
 
@@ -19,5 +19,5 @@ async def async_get_config_entry_diagnostics(
         "connected": hub.connected,
         "device": hub.device,
         "entities": sorted(hub.descriptions),
-        "state": hub.state,
+        "state": sorted(hub.state),
     }

@@ -89,7 +89,7 @@ async def test_the_action_needs_the_app_set_up(hass: HomeAssistant) -> None:
     assert raised.value.translation_key == "not_loaded"
 
 
-async def test_diagnostics_leave_the_token_out(
+async def test_diagnostics_leave_the_token_and_play_out(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
     await set_up(hass, config_entry)
@@ -98,6 +98,8 @@ async def test_diagnostics_leave_the_token_out(
     assert diagnostics["connected"] is True
     assert "games" in diagnostics["entities"]
     assert config_entry.data["token"] not in str(diagnostics)
+    assert "games" in diagnostics["state"]
+    assert "Celeste" not in str(diagnostics)
 
 
 async def test_a_roll_is_for_one_person(
