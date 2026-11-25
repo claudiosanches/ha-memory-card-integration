@@ -12,7 +12,7 @@ from homeassistant.config_entries import SOURCE_HASSIO
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_TOKEN
 from homeassistant.core import HomeAssistant
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.memory_card.const import CONF_SLUG, DOMAIN
 
@@ -220,11 +220,6 @@ class FakeApp:
 
 def _line(message: dict[str, Any]) -> bytes:
     return json.dumps(message).encode() + b"\n"
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Let Home Assistant load the integration from this repository."""
 
 
 @pytest.fixture
