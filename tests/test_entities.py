@@ -292,6 +292,15 @@ async def test_a_hello_without_an_entity_list_is_refused(
     assert config_entry.state is ConfigEntryState.SETUP_RETRY
 
 
+async def test_text_home_assistant_cannot_save_is_refused(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    fake_app.state["last_added"] = "\ud800"
+    with patch("custom_components.memory_card.SETUP_TIMEOUT", timedelta(milliseconds=200)):
+        await set_up(hass, config_entry)
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
 async def test_a_feed_line_too_deep_to_read_starts_over(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:

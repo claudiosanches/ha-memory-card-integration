@@ -74,7 +74,7 @@ class MemoryCardClient:
                 _check(response)
                 async for line in response.content:
                     if line.strip():
-                        message = json.loads(line, parse_constant=_not_a_number)
+                        message = _loads(line, parse_constant=_not_a_number)
                         if isinstance(message, dict):
                             yield message
         # Deeply nested JSON raises RecursionError.
@@ -114,7 +114,7 @@ class MemoryCardClient:
                     body += chunk
                     if len(body) > ROLL_MAX:
                         raise MemoryCardError("the roll answer is too large")
-            pick = json.loads(body)
+            pick = _loads(body)
         except (aiohttp.ClientError, TimeoutError, ValueError, RecursionError) as err:
             raise MemoryCardError(str(err) or type(err).__name__) from err
         if not isinstance(pick, dict) or not isinstance(pick.get("title"), str):
@@ -134,10 +134,21 @@ async def _code(response: aiohttp.ClientResponse) -> str:
     while len(body) < ERROR_MAX and (chunk := await response.content.read(ERROR_MAX - len(body))):
         body += chunk
     try:
-        code = json.loads(body).get("code")
+        code = _loads(body).get("code")
     except ValueError, AttributeError:
         return ""
     return code if isinstance(code, str) else ""
+
+
+def _loads(data: bytes | str, **kwargs: Any) -> Any:
+    """Decode JSON that Home Assistant can write out again.
+
+    An escaped unpaired surrogate decodes, but no state with it can be saved,
+    so it raises UnicodeEncodeError, a ValueError.
+    """
+    value = json.loads(data, **kwargs)
+    json.dumps(value, ensure_ascii=False).encode()
+    return value
 
 
 def _not_a_number(name: str) -> Any:
