@@ -11,7 +11,7 @@ from yarl import URL
 from .const import CONF_SLUG, DOMAIN
 
 # The app's token: 32 random bytes as hex.
-TOKEN = re.compile(r"[0-9a-f]{64}")
+TOKEN = re.compile(r"[0-9A-Fa-f]{64}")
 
 
 def _entry_data(discovery: HassioServiceInfo) -> dict[str, Any]:
