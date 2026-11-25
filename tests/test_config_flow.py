@@ -13,7 +13,9 @@ from custom_components.memory_card.const import CONF_SLUG, DOMAIN
 from .conftest import TOKEN, UUID, FakeApp
 
 
-def discovery(port: int, token: str = TOKEN, **config: object) -> HassioServiceInfo:
+def discovery(
+    port: int, token: str = TOKEN, uuid: str = UUID, **config: object
+) -> HassioServiceInfo:
     return HassioServiceInfo(
         config={
             "host": "127.0.0.1",
@@ -24,7 +26,7 @@ def discovery(port: int, token: str = TOKEN, **config: object) -> HassioServiceI
         },
         name="Memory Card",
         slug="local_memory_card",
-        uuid=UUID,
+        uuid=uuid,
     )
 
 
@@ -52,6 +54,19 @@ async def test_the_app_announces_itself_and_one_click_adds_it(
     entry = result["result"]
     assert entry.unique_id == UUID
     assert entry.source == SOURCE_HASSIO
+
+
+async def test_a_second_app_is_refused(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    config_entry.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_HASSIO},
+        data=discovery(fake_app.port, uuid="0" * 32),
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "single_app"
 
 
 async def test_a_new_announcement_updates_the_entry(

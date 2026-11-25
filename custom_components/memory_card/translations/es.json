@@ -9,7 +9,8 @@
     "abort": {
       "already_configured": "Memory Card ya está configurado.",
       "discovery_only": "Memory Card se configura solo. En la configuración de la aplicación Memory Card, pon Sensores de Home Assistant en \"integration\" y reinicia la aplicación; Home Assistant la mostrará como descubierta.",
-      "invalid_discovery": "La aplicación Memory Card se anunció sin dirección ni token. Actualiza la aplicación."
+      "invalid_discovery": "La aplicación Memory Card se anunció sin dirección ni token. Actualiza la aplicación.",
+      "single_app": "Memory Card ya está configurado para otra aplicación Memory Card. Elimínalo primero para usar esta."
     }
   },
   "entity": {

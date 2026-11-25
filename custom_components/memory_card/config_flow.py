@@ -52,6 +52,9 @@ class MemoryCardConfigFlow(ConfigFlow, domain=DOMAIN):
         # Home Assistant removes the entry when the app withdraws this message.
         await self.async_set_unique_id(discovery_info.uuid)
         self._abort_if_unique_id_configured(updates=_entry_data(discovery_info))
+        # One collection: the roll action and the device have no way to pick one.
+        if self._async_current_entries(include_ignore=False):
+            return self.async_abort(reason="single_app")
         self._discovery = discovery_info
         return await self.async_step_hassio_confirm()
 

@@ -9,7 +9,8 @@
     "abort": {
       "already_configured": "Memory Card is already set up.",
       "discovery_only": "Memory Card sets itself up. In the Memory Card app's configuration, set Home Assistant sensors to \"integration\" and restart the app; Home Assistant then shows it as discovered.",
-      "invalid_discovery": "The Memory Card app announced itself without an address or token. Update the app."
+      "invalid_discovery": "The Memory Card app announced itself without an address or token. Update the app.",
+      "single_app": "Memory Card is already set up for another Memory Card app. Remove it first to use this one."
     }
   },
   "entity": {

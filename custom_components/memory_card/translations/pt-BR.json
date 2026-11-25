@@ -9,7 +9,8 @@
     "abort": {
       "already_configured": "O Memory Card já está configurado.",
       "discovery_only": "O Memory Card se configura sozinho. Na configuração do aplicativo Memory Card, defina Sensores do Home Assistant como \"integration\" e reinicie o aplicativo; o Home Assistant então o mostra como descoberto.",
-      "invalid_discovery": "O aplicativo Memory Card se anunciou sem endereço ou token. Atualize o aplicativo."
+      "invalid_discovery": "O aplicativo Memory Card se anunciou sem endereço ou token. Atualize o aplicativo.",
+      "single_app": "O Memory Card já está configurado para outro aplicativo Memory Card. Remova-o primeiro para usar este."
     }
   },
   "entity": {
