@@ -69,6 +69,25 @@ async def test_a_second_app_is_refused(
     assert result["reason"] == "single_app"
 
 
+async def test_a_second_app_confirmed_after_the_first_is_refused(
+    hass: HomeAssistant, fake_app: FakeApp
+) -> None:
+    flows = [
+        await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_HASSIO}, data=discovery(fake_app.port, uuid=uuid)
+        )
+        for uuid in (UUID, "0" * 32)
+    ]
+    assert [flow["type"] for flow in flows] == [FlowResultType.FORM] * 2
+
+    first = await hass.config_entries.flow.async_configure(flows[0]["flow_id"], {})
+    assert first["type"] is FlowResultType.CREATE_ENTRY
+    second = await hass.config_entries.flow.async_configure(flows[1]["flow_id"], {})
+    assert second["type"] is FlowResultType.ABORT
+    assert second["reason"] == "single_app"
+    await hass.async_block_till_done()
+
+
 async def test_a_new_announcement_updates_the_entry(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:

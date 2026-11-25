@@ -68,6 +68,9 @@ class MemoryCardConfigFlow(ConfigFlow, domain=DOMAIN):
                 step_id="hassio_confirm",
                 description_placeholders={"addon": self._discovery.name},
             )
+        # Another app's announcement may have been confirmed meanwhile.
+        if self._async_current_entries(include_ignore=False):
+            return self.async_abort(reason="single_app")
         return self.async_create_entry(
             title=self._discovery.name, data=_entry_data(self._discovery)
         )
