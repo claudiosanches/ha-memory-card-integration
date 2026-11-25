@@ -100,8 +100,8 @@ or [Ko-fi](https://ko-fi.com/claudiosanches).
 
 ## License
 
-GNU General Public License, version 3 or (at your option) any later version,
-like the app. See [LICENSE](LICENSE).
+Apache License, version 2.0, like the app and Home Assistant. See
+[LICENSE](LICENSE).
 
 [releases-shield]: https://img.shields.io/github/v/release/claudiosanches/ha-memory-card-integration.svg
 [releases]: https://github.com/claudiosanches/ha-memory-card-integration/releases
