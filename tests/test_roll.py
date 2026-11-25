@@ -100,6 +100,10 @@ async def test_diagnostics_leave_the_token_and_play_out(
     assert config_entry.data["token"] not in str(diagnostics)
     assert "games" in diagnostics["state"]
     assert "Celeste" not in str(diagnostics)
+    # Each person's keys carry their Home Assistant user ID.
+    assert "person_1_backlog" in diagnostics["entities"]
+    assert "person_1_last_played" in diagnostics["state"]
+    assert "person_ana" not in str(diagnostics)
 
 
 async def test_diagnostics_work_before_the_app_answers(
