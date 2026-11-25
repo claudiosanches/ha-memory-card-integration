@@ -97,7 +97,7 @@ def _entities(message: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Entity
     device = message.get("device")
     entities = message.get("entities")
     if not isinstance(entities, list):
-        entities = []
+        raise MemoryCardError("the app sent no entity list")
     if len(entities) > ENTITIES_MAX:
         raise MemoryCardError(f"the app sent {len(entities)} entities")
     descriptions = (_description(raw) for raw in entities)
@@ -258,9 +258,9 @@ class MemoryCardHub:
     def _remove_gone(self) -> None:
         """Drop entities the app no longer sends."""
         registry = er.async_get(self.hass)
-        kept = {f"{DOMAIN}_{key}" for key in self.descriptions}
+        kept = {(d.platform, f"{DOMAIN}_{key}") for key, d in self.descriptions.items()}
         for entry in er.async_entries_for_config_entry(registry, self.entry.entry_id):
-            if entry.unique_id not in kept:
+            if (entry.domain, entry.unique_id) not in kept:
                 registry.async_remove(entry.entity_id)
 
     @callback

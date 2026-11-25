@@ -268,6 +268,15 @@ async def test_an_entity_list_past_the_cap_is_refused(
     assert er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id) == []
 
 
+async def test_a_hello_without_an_entity_list_is_refused(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    fake_app.entities = None
+    with patch("custom_components.memory_card.SETUP_TIMEOUT", timedelta(milliseconds=200)):
+        await set_up(hass, config_entry)
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
 async def test_a_feed_line_too_deep_to_read_starts_over(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
