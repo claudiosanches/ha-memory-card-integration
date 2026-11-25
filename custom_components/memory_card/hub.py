@@ -101,10 +101,11 @@ def _entities(message: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Entity
     if len(entities) > ENTITIES_MAX:
         raise MemoryCardError(f"the app sent {len(entities)} entities")
     descriptions = (_description(raw) for raw in entities)
-    return (
-        device if isinstance(device, dict) else {},
-        {d.key: d for d in descriptions if d is not None},
-    )
+    usable = {d.key: d for d in descriptions if d is not None}
+    # The app always has the household's sensors, and taking none would remove them all.
+    if not usable:
+        raise MemoryCardError("the app sent no usable entity")
+    return (device if isinstance(device, dict) else {}, usable)
 
 
 class MemoryCardHub:

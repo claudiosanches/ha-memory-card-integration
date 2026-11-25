@@ -283,6 +283,15 @@ async def test_an_entity_list_past_the_cap_is_refused(
     assert er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id) == []
 
 
+async def test_an_entity_list_with_nothing_usable_is_refused(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    fake_app.entities = [{"key": "", "platform": "sensor"}, {"key": "games", "platform": "x"}]
+    with patch("custom_components.memory_card.SETUP_TIMEOUT", timedelta(milliseconds=200)):
+        await set_up(hass, config_entry)
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
 async def test_a_hello_without_an_entity_list_is_refused(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
