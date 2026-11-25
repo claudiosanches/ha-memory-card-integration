@@ -19,7 +19,8 @@ from .hub import MemoryCardHub
 
 SERVICE_ROLL_PICK = "roll_pick"
 
-_SLUGS = vol.All(cv.ensure_list, [cv.string])
+# Short lists of slugs, so a roll stays under the app's 4 KiB body limit.
+_SLUGS = vol.All(cv.ensure_list, vol.Length(max=10), [vol.All(cv.string, vol.Length(max=64))])
 ROLL_PICK_SCHEMA = vol.Schema(
     {
         vol.Optional("person"): cv.entity_domain("person"),

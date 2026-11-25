@@ -102,6 +102,8 @@ class MemoryCardClient:
                     raise NotAllowed(await _code(response))
                 if response.status == 404:
                     raise NoMatch
+                if response.status == 413:
+                    raise InvalidFilters
                 if response.status == 422:
                     if await _code(response) in ("person_required", "invalid_user"):
                         raise PersonRequired
@@ -128,7 +130,9 @@ class MemoryCardClient:
 
 async def _code(response: aiohttp.ClientResponse) -> str:
     """Read the error code from a short answer; an empty string when there is none."""
-    body = await response.content.read(ERROR_MAX)
+    body = b""
+    while len(body) < ERROR_MAX and (chunk := await response.content.read(ERROR_MAX - len(body))):
+        body += chunk
     try:
         code = json.loads(body).get("code")
     except ValueError, AttributeError:
