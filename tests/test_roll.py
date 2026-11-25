@@ -102,6 +102,15 @@ async def test_diagnostics_leave_the_token_and_play_out(
     assert "Celeste" not in str(diagnostics)
 
 
+async def test_diagnostics_work_before_the_app_answers(
+    hass: HomeAssistant, config_entry: MockConfigEntry
+) -> None:
+    config_entry.add_to_hass(hass)
+    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
+    assert diagnostics["entry"]["token"] == "**REDACTED**"
+    assert "connected" not in diagnostics
+
+
 async def test_a_roll_is_for_one_person(
     hass: HomeAssistant,
     config_entry: MockConfigEntry,

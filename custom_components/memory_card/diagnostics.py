@@ -13,11 +13,19 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: MemoryCardConfigEntry
 ) -> dict[str, Any]:
     """Return what the integration holds for the app."""
-    hub = entry.runtime_data
-    return {
+    diagnostics: dict[str, Any] = {
         "entry": async_redact_data(dict(entry.data), {CONF_TOKEN}),
+        "setup": entry.state.value,
+    }
+    # Set only once the app has sent its first state.
+    hub = getattr(entry, "runtime_data", None)
+    if hub is None:
+        return diagnostics
+    device = hub.device_info
+    return {
+        **diagnostics,
         "connected": hub.connected,
-        "device": hub.device,
+        "device": {key: device.get(key) for key in ("name", "model", "sw_version")},
         "entities": sorted(hub.descriptions),
-        "state": sorted(hub.state),
+        "state": sorted(key for key in hub.state or {} if key in hub.descriptions),
     }
