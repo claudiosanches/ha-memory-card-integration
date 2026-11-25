@@ -8,7 +8,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -252,6 +252,10 @@ class MemoryCardHub:
             return
         self.device, descriptions = self._next
         self._next = None
+        # Entities added earlier keep the device details they were built with.
+        dr.async_get(self.hass).async_get_or_create(
+            config_entry_id=self.entry.entry_id, **self.device_info
+        )
         if descriptions == self.descriptions and not always:
             return
         self.descriptions = descriptions

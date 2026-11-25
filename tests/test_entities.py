@@ -283,6 +283,22 @@ async def test_an_entity_list_past_the_cap_is_refused(
     assert er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id) == []
 
 
+async def test_a_newer_app_version_shows_on_the_device(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    device = {**fake_app.device, "sw_version": "0.2.0"}
+    fake_app.send({"type": "hello", "api": 1, "device": device, "entities": fake_app.entities})
+    registry = dr.async_get(hass)
+    await until(
+        hass,
+        lambda: (
+            dr.async_entries_for_config_entry(registry, config_entry.entry_id)[0].sw_version
+            == "0.2.0"
+        ),
+    )
+
+
 async def test_an_entity_list_with_nothing_usable_is_refused(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:
