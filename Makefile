@@ -23,6 +23,10 @@ format: $(VENV)/ready ## Format with ruff
 test: $(VENV)/ready ## Run the tests
 	$(RUN) $(VENV)/bin/pytest -q
 
+.PHONY: release
+release: ## Commit and tag the next release (VERSION=X.Y.Z to choose it)
+	./scripts/release.sh $(VERSION)
+
 .PHONY: clean
 clean: ## Remove the test environment and caches
 	rm -rf $(VENV) .pytest_cache .ruff_cache
