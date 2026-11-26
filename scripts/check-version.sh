@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fails unless the manifest and the changelog have the given version.
+# Fails unless the manifest, pyproject.toml and the changelog have the given version.
 # Usage: scripts/check-version.sh 0.1.0
 set -eu
 cd "$(dirname "$0")/.."
@@ -10,6 +10,11 @@ status=0
 manifest=$(sed -n 's/^  "version": "\(.*\)"$/\1/p' custom_components/memory_card/manifest.json)
 if [ "$manifest" != "$expected" ]; then
     echo "manifest.json has version '$manifest', expected '$expected'" >&2
+    status=1
+fi
+pyproject=$(sed -n '/^\[project\]/,/^\[/s/^version = "\(.*\)"$/\1/p' pyproject.toml)
+if [ "$pyproject" != "$expected" ]; then
+    echo "pyproject.toml has version '$pyproject', expected '$expected'" >&2
     status=1
 fi
 version_pattern=$(printf '%s' "$expected" | sed 's/\./\\./g')

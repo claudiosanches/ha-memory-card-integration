@@ -17,11 +17,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Version matches the tag
+          fetch-depth: 0
+      - name: Tag is on main and matches the versions
         env:
           TAG: ${{ github.ref_name }}
         run: |
           version=${TAG#v}
+          git merge-base --is-ancestor HEAD origin/main || { echo "$TAG is not on main" >&2; exit 1; }
           ./scripts/check-version.sh "$version"
           ./scripts/release-notes.sh "$version" > "$RUNNER_TEMP/notes.md"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -29,7 +31,7 @@ jobs:
           name: notes
           path: ${{ runner.temp }}/notes.md
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
 
   # Creates the GitHub release, which HACS offers as an update, once the checks pass.
   release:
@@ -47,6 +49,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
-        run: >-
-          gh api "repos/$REPO/releases" -f tag_name="$TAG" -f name="$TAG"
-          -F body=@"$RUNNER_TEMP/notes.md" --silent
+        run: |
+          if gh api "repos/$REPO/releases/tags/$TAG" --silent 2>/dev/null; then
+            echo "::notice::The $TAG release exists"
+          else
+            gh api "repos/$REPO/releases" -f tag_name="$TAG" -f name="$TAG" \
+              -F body=@"$RUNNER_TEMP/notes.md" -f make_latest=legacy --silent
+          fi

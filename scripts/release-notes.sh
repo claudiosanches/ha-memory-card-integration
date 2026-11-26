@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 
 notes=$(awk -v heading="## [$1] - " '
     index($0, heading) == 1 { found = 1; next }
-    found && (/^## / || /^\[[^]]+\]: /) { exit }
-    found { print }
+    found && /^## / { exit }
+    found && !/^\[(Unreleased|[0-9]+\.[0-9]+\.[0-9]+)\]: / { print }
 ' CHANGELOG.md | sed '/./,$!d')
 
 if [ -z "$notes" ]; then

@@ -25,7 +25,7 @@ test: $(VENV)/ready ## Run the tests
 
 .PHONY: release
 release: ## Commit and tag the next release (VERSION=X.Y.Z to choose it)
-	./scripts/release.sh $(VERSION)
+	./scripts/release.sh $${VERSION:+"$$VERSION"}
 
 .PHONY: clean
 clean: ## Remove the test environment and caches
