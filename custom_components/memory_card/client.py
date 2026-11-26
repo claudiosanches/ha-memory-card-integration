@@ -101,7 +101,9 @@ class MemoryCardClient:
                 if response.status == 403:
                     raise NotAllowed(await _code(response))
                 if response.status == 404:
-                    raise NoMatch
+                    if await _code(response) == "no_candidates":
+                        raise NoMatch
+                    raise MemoryCardError("the app has no roll")
                 if response.status == 413:
                     raise InvalidFilters
                 if response.status == 422:

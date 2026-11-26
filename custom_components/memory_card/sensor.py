@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import MemoryCardConfigEntry
 from .const import RESERVED_ATTRIBUTES
 from .entity import MemoryCardEntity, follow_entities
-from .hub import EntityDescription, MemoryCardHub, valid_key
+from .hub import valid_key
 
 PARALLEL_UPDATES = 0
 # Counts stay far below it; past it a float loses whole numbers.
@@ -34,12 +34,15 @@ async def async_setup_entry(
 class MemoryCardSensor(MemoryCardEntity, SensorEntity):
     """A value from the app's state."""
 
-    def __init__(self, hub: MemoryCardHub, description: EntityDescription) -> None:
-        """Take the unit and state class the app names."""
-        super().__init__(hub, description)
-        self._attr_native_unit_of_measurement = description.unit
-        if description.state_class in SensorStateClass:
-            self._attr_state_class = SensorStateClass(description.state_class)
+    def _describe(self) -> None:
+        """Also take the unit and state class the app names."""
+        super()._describe()
+        self._attr_native_unit_of_measurement = self.description.unit
+        self._attr_state_class = (
+            SensorStateClass(self.description.state_class)
+            if self.description.state_class in SensorStateClass
+            else None
+        )
 
     @property
     def native_value(self) -> Any:

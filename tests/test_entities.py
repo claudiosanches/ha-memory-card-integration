@@ -218,6 +218,27 @@ async def test_a_new_entity_list_adds_and_drops_entities_without_starting_over(
     )
 
 
+async def test_a_renamed_person_renames_their_entities(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    await set_up(hass, config_entry)
+    renamed = [
+        {**entity, "person": {**entity["person"], "name": "Ana Lucia"}}
+        if "person" in entity
+        else entity
+        for entity in fake_app.entities
+    ]
+    fake_app.send({"type": "hello", "api": 1, "entities": renamed})
+    await until(
+        hass,
+        lambda: (
+            hass.states.get("sensor.memory_card_ana_backlog").attributes[ATTR_FRIENDLY_NAME]
+            == "Memory Card Ana Lucia backlog"
+        ),
+    )
+    assert fake_app.connections == 1
+
+
 async def test_a_key_moved_to_another_platform_and_back_comes_back(
     hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
 ) -> None:

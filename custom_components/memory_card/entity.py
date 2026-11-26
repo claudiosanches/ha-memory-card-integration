@@ -12,7 +12,7 @@ from .hub import EntityDescription, MemoryCardHub
 
 
 class MemoryCardEntity(Entity):
-    """An entity the app describes, with the same IDs as its MQTT twin."""
+    """An entity the app describes, with the IDs MQTT mode gives its sensors."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -23,6 +23,12 @@ class MemoryCardEntity(Entity):
         self.description = description
         self._attr_unique_id = f"{DOMAIN}_{description.key}"
         self.entity_id = f"{description.platform}.{DOMAIN}_{description.object_id}"
+        self._attr_device_info = hub.device_info
+        self._describe()
+
+    def _describe(self) -> None:
+        """Take the name and icon from the description."""
+        description = self.description
         if description.kind is not None:
             self._attr_translation_key = f"person_{description.kind}"
             self._attr_translation_placeholders = {"person": description.person or ""}
@@ -31,7 +37,6 @@ class MemoryCardEntity(Entity):
         else:
             self._attr_name = description.name
         self._attr_icon = description.icon
-        self._attr_device_info = hub.device_info
 
     @property
     def available(self) -> bool:
@@ -39,10 +44,24 @@ class MemoryCardEntity(Entity):
         return self.hub.available
 
     async def async_added_to_hass(self) -> None:
-        """Follow the feed."""
+        """Follow the feed, and the description when a person is renamed."""
         self.async_on_remove(
             async_dispatcher_connect(self.hass, self.hub.signal_update, self.async_write_ha_state)
         )
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, self.hub.signal_entities, self._redescribe)
+        )
+
+    @callback
+    def _redescribe(self) -> None:
+        new = self.hub.descriptions.get(self.description.key)
+        if new is None or new == self.description or new.platform != self.description.platform:
+            return
+        self.description = new
+        self._describe()
+        # Home Assistant caches the name, and new placeholders do not clear it.
+        self.__dict__.pop("name", None)
+        self.async_write_ha_state()
 
 
 def follow_entities(

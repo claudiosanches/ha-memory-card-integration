@@ -40,13 +40,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: MemoryCardConfigEntry) -
     try:
         async with asyncio.timeout(SETUP_TIMEOUT.total_seconds()):
             await hub.wait_ready()
+        entry.runtime_data = hub
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     except TimeoutError as err:
         await hub.stop()
         raise ConfigEntryNotReady(
             translation_domain=DOMAIN, translation_key="cannot_connect"
         ) from err
-    entry.runtime_data = hub
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    except BaseException:
+        # A cancelled or failed setup leaves no feed running.
+        await hub.stop()
+        raise
     return True
 
 

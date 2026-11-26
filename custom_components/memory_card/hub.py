@@ -215,7 +215,7 @@ class MemoryCardHub:
             delay = min(delay * 2, RETRY_MAX.total_seconds())
 
     def _handle(self, message: dict[str, Any]) -> bool:
-        """Apply one message; returns whether it was the start of a feed."""
+        """Apply one message; returns whether the app just became available."""
         kind = message.get("type")
         # The entity list opens each feed, and comes again when the people
         # who keep play change.
@@ -223,7 +223,7 @@ class MemoryCardHub:
             raise MemoryCardError("the feed did not start with its entities")
         if kind == "hello":
             api = message.get("api")
-            if api != API_VERSION:
+            if type(api) is not int or api != API_VERSION:
                 # Only a number goes to the log.
                 version = api if type(api) is int else "that is not a number"
                 raise UnsupportedApi(f"feed version {version}")
@@ -235,7 +235,7 @@ class MemoryCardHub:
             else:
                 # The people who keep play changed; applied once a second at most.
                 self._entities.async_schedule_call()
-            return started
+            return False
         if kind == "state" and isinstance(message.get("state"), dict):
             self.state = message["state"]
             self._ready.set()
@@ -243,6 +243,7 @@ class MemoryCardHub:
                 self._update.async_schedule_call()
             else:
                 self._set_connected(True)
+                return True
         return False
 
     @callback
