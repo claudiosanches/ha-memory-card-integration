@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  notes:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Version matches the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=${TAG#v}
+          ./scripts/check-version.sh "$version"
+          ./scripts/release-notes.sh "$version" > "$RUNNER_TEMP/notes.md"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: notes
+          path: ${{ runner.temp }}/notes.md
+          if-no-files-found: error
+          retention-days: 1
+
+  # Creates the GitHub release, which HACS offers as an update, once the checks pass.
+  release:
+    needs: [ci, notes]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: notes
+          path: ${{ runner.temp }}
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: >-
+          gh api "repos/$REPO/releases" -f tag_name="$TAG" -f name="$TAG"
+          -F body=@"$RUNNER_TEMP/notes.md" --silent
