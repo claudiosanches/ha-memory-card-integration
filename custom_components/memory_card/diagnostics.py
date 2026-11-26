@@ -37,11 +37,16 @@ async def async_get_config_entry_diagnostics(
 def _without_user_ids(keys: Iterable[str]) -> dict[str, str]:
     """Each entity key, with the Home Assistant user ID in a person's keys numbered instead."""
     people: dict[str, int] = {}
+    others: dict[str, int] = {}
     shown = {}
     for key in sorted(keys):
-        kind = next((k for k in PERSON_KINDS if key.endswith(f"_{k}")), None)
-        if kind is None or not key.startswith("person_"):
+        if not key.startswith("person_"):
             shown[key] = key
+            continue
+        kind = next((k for k in PERSON_KINDS if key.endswith(f"_{k}")), None)
+        if kind is None:
+            # A kind from a newer app, which cannot be told apart from the ID.
+            shown[key] = f"person_other_{others.setdefault(key, len(others) + 1)}"
             continue
         user_id = key.removeprefix("person_").removesuffix(f"_{kind}")
         shown[key] = f"person_{people.setdefault(user_id, len(people) + 1)}_{kind}"

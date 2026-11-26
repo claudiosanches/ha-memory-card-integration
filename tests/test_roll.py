@@ -10,7 +10,10 @@ from pytest_homeassistant.common import MockConfigEntry, MockUser
 import voluptuous as vol
 
 from custom_components.memory_card.const import DOMAIN
-from custom_components.memory_card.diagnostics import async_get_config_entry_diagnostics
+from custom_components.memory_card.diagnostics import (
+    _without_user_ids,
+    async_get_config_entry_diagnostics,
+)
 
 from .conftest import FakeApp, set_up
 
@@ -104,6 +107,14 @@ async def test_diagnostics_leave_the_token_and_play_out(
     assert "person_1_backlog" in diagnostics["entities"]
     assert "person_1_last_played" in diagnostics["state"]
     assert "person_ana" not in str(diagnostics)
+
+
+def test_diagnostics_hide_the_user_id_in_a_kind_from_a_newer_app() -> None:
+    shown = _without_user_ids(["games", "person_ana_backlog", "person_ana_minutes", "person_bo_x"])
+    assert shown["games"] == "games"
+    assert shown["person_ana_backlog"] == "person_1_backlog"
+    assert shown["person_ana_minutes"] == "person_other_1"
+    assert shown["person_bo_x"] == "person_other_2"
 
 
 async def test_diagnostics_work_before_the_app_answers(
