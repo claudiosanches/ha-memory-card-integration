@@ -13,7 +13,8 @@ Assistant without an MQTT broker. Memory Card tracks a video game collection
 across consoles.
 
 The app does all the work. This integration reads what it sends, so the
-entities match the ones the app's MQTT mode creates, IDs included.
+sensors match the ones the app's MQTT mode creates, IDs included. The
+**Roll a pick** button comes only with the integration.
 
 ## Requirements
 
