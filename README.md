@@ -62,7 +62,7 @@ named after them, such as `sensor.memory_card_ana_backlog`:
 | `sensor.memory_card_<name>_playing` | Their owned games in a status that counts as playing |
 | `sensor.memory_card_<name>_last_played` | Title of the game they last played |
 
-[The app's guide](https://github.com/claudiosanches/ha-memory-card/blob/main/docs/sensors.md)
+[The app's guide](https://ha-memory-card.pages.dev/docs/sensors)
 lists their attributes. Values update about a second after each change, and
 the entities are unavailable while the app is stopped.
 
@@ -91,7 +91,7 @@ rolls only for themselves.
 
 ## More
 
-[Memory Card integration](https://github.com/claudiosanches/ha-memory-card/blob/main/docs/integration.md)
+[Memory Card integration](https://ha-memory-card.pages.dev/docs/integration)
 in the app's guide compares it with MQTT, and has dashboard and automation
 examples, what each error means, and how to troubleshoot and remove it.
 
