@@ -30,6 +30,7 @@ ROLL_PICK_SCHEMA = vol.Schema(
         vol.Optional("genre"): _SLUGS,
         vol.Optional("game_mode"): _SLUGS,
         vol.Optional("min_local_players"): vol.All(vol.Coerce(int), vol.Range(min=1, max=64)),
+        vol.Optional("max_hours_to_beat"): vol.All(vol.Coerce(int), vol.Range(min=1, max=999)),
     }
 )
 

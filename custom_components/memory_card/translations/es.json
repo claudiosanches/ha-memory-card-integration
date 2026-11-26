@@ -81,6 +81,10 @@
         "min_local_players": {
           "name": "Jugadores locales",
           "description": "Al menos esta cantidad de jugadores en la misma pantalla."
+        },
+        "max_hours_to_beat": {
+          "name": "Horas para terminarlo",
+          "description": "Como máximo estas horas para la historia principal, según IGDB. Se omiten los juegos sin tiempo."
         }
       }
     }

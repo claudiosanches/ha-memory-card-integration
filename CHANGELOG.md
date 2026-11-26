@@ -19,7 +19,8 @@ First release.
 - The same entities and IDs as the app's MQTT mode, so history carries over.
 - **Roll a pick** button, rolling from the backlog of whoever presses it.
 - `memory_card.roll_pick` action, for whoever calls it or the person an
-  automation names, with filters, answering with the picked game.
+  automation names, with filters including hours to beat, answering with the
+  picked game.
 - Diagnostics without the token, anyone's play or user IDs.
 - English, Spanish and Brazilian Portuguese.
 

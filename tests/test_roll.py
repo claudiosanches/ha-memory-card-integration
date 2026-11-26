@@ -47,13 +47,15 @@ async def test_the_action_sends_filters_and_answers_with_the_pick(
     response = await hass.services.async_call(
         DOMAIN,
         "roll_pick",
-        {"device": "switch", "min_local_players": 2},
+        {"device": "switch", "min_local_players": 2, "max_hours_to_beat": 10},
         blocking=True,
         return_response=True,
         context=Context(user_id=hass_admin_user.id),
     )
     assert response == {"title": "Celeste", "platforms": ["Nintendo Switch"]}
-    assert fake_app.rolls == [{"device": ["switch"], "min_local_players": 2}]
+    assert fake_app.rolls == [
+        {"device": ["switch"], "min_local_players": 2, "max_hours_to_beat": 10}
+    ]
 
     with pytest.raises(vol.Invalid):
         await hass.services.async_call(DOMAIN, "roll_pick", {"min_local_players": 0}, blocking=True)

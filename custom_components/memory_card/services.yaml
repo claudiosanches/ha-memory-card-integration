@@ -33,3 +33,11 @@ roll_pick:
           min: 1
           max: 64
           mode: box
+    max_hours_to_beat:
+      example: 10
+      selector:
+        number:
+          min: 1
+          max: 999
+          mode: box
+          unit_of_measurement: h

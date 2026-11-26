@@ -82,8 +82,8 @@ response_variable: pick
 ```
 
 `play_status`, `platform`, `device`, `genre` and `game_mode` take one slug or
-a list of up to 10, as the app's forms show them. `min_local_players` is a
-number. The response holds the picked game's `title` and `platforms`.
+a list of up to 10, as the app's forms show them. `min_local_players` and
+`max_hours_to_beat` (hours for the main story) are numbers. The response holds the picked game's `title` and `platforms`.
 
 Like **Pick for me** in the app, a roll needs the app to have managers, and
 the person to be one of them or a viewer the app lets keep play. A person
