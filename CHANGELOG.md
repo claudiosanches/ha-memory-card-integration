@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The README installs Memory Card by searching the Marketplace, where it is
   listed now, and keeps the button for a Marketplace that does not list it yet.
+- The `roll_pick` platform description and README note that slugs are shown
+  in the app's forms when `show_slugs` is turned on.
 
 ## [0.1.0] - 2026-11-27
 

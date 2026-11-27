@@ -64,7 +64,7 @@
         },
         "platform": {
           "name": "Platforms",
-          "description": "Platform slugs, as each platform's form in Memory Card shows them."
+          "description": "Platform slugs, such as switch or ps5. Turn on show_slugs in the Memory Card app's options to view them in its forms."
         },
         "device": {
           "name": "Devices",

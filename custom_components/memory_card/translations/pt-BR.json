@@ -64,7 +64,7 @@
         },
         "platform": {
           "name": "Plataformas",
-          "description": "Slugs de plataformas, como o formulário de cada plataforma no Memory Card mostra."
+          "description": "Slugs de plataformas, como switch ou ps5. Ligue show_slugs nas opções do aplicativo Memory Card para vê-los nos formulários."
         },
         "device": {
           "name": "Dispositivos",
