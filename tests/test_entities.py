@@ -17,6 +17,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 import pytest
 from pytest_homeassistant.common import MockConfigEntry
 
+from custom_components.memory_card.client import FEED_LINE_MAX
 from custom_components.memory_card.const import DOMAIN
 from custom_components.memory_card.hub import MemoryCardHub
 
@@ -355,6 +356,26 @@ async def test_a_feed_line_too_deep_to_read_starts_over(
         fake_app.send(b"[" * 65_000 + b"]" * 65_000 + b"\n")
         await until(hass, lambda: fake_app.connections == 2)
         await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "3")
+
+
+async def test_a_feed_line_over_the_limit_starts_over(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    with FAST_RETRY:
+        await set_up(hass, config_entry)
+        fake_app.send(b"x" * (FEED_LINE_MAX + 1))
+        await until(hass, lambda: fake_app.connections == 2)
+
+
+async def test_a_feed_line_longer_than_aiohttp_reads_is_read(
+    hass: HomeAssistant, config_entry: MockConfigEntry, fake_app: FakeApp
+) -> None:
+    with FAST_RETRY:
+        await set_up(hass, config_entry)
+        state = {**fake_app.state, "games": 4}
+        fake_app.send({"type": "state", "state": state, "padding": "x" * 700_000})
+        await until(hass, lambda: hass.states.get("sensor.memory_card_games").state == "4")
+    assert fake_app.connections == 1
 
 
 async def test_any_fault_while_reading_starts_the_feed_over(

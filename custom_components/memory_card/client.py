@@ -13,6 +13,9 @@ from .const import READ_TIMEOUT, REQUEST_TIMEOUT
 USER_HEADER = "X-Home-Assistant-User"
 # A pick is a title and a few platform names.
 ROLL_MAX = 64 * 1024
+# Room for the longest state message, a few hundred titles. aiohttp's own line
+# limit changes between its versions.
+FEED_LINE_MAX = 1024 * 1024
 
 
 class MemoryCardError(Exception):
@@ -72,7 +75,7 @@ class MemoryCardClient:
                 allow_redirects=False,
             ) as response:
                 _check(response)
-                async for line in response.content:
+                async for line in _lines(response.content):
                     if line.strip():
                         message = _loads(line, parse_constant=_not_a_number)
                         if isinstance(message, dict):
@@ -155,6 +158,26 @@ def _loads(data: bytes | str, **kwargs: Any) -> Any:
 
 def _not_a_number(name: str) -> Any:
     raise ValueError(f"the feed sent {name}, which JSON does not allow")
+
+
+async def _lines(content: aiohttp.StreamReader) -> AsyncIterator[bytes]:
+    """Yield each line of the feed, refusing one longer than FEED_LINE_MAX."""
+    buffer = bytearray()
+    searched = 0
+    async for chunk in content.iter_any():
+        buffer += chunk
+        while (end := buffer.find(b"\n", searched)) != -1:
+            line = bytes(buffer[:end])
+            del buffer[: end + 1]
+            searched = 0
+            if len(line) > FEED_LINE_MAX:
+                raise MemoryCardError("a feed line is too long")
+            yield line
+        searched = len(buffer)
+        if searched > FEED_LINE_MAX:
+            raise MemoryCardError("a feed line is too long")
+    if buffer:
+        yield bytes(buffer)
 
 
 def _check(response: aiohttp.ClientResponse) -> None:
