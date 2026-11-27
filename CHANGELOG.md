@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-27
+
 First release.
 
 ### Added
@@ -24,4 +26,5 @@ First release.
 - Diagnostics without the token, anyone's play or user IDs.
 - English, Spanish and Brazilian Portuguese.
 
-[Unreleased]: https://github.com/claudiosanches/ha-memory-card-integration/commits/main
+[Unreleased]: https://github.com/claudiosanches/ha-memory-card-integration/compare/v0.1.0...main
+[0.1.0]: https://github.com/claudiosanches/ha-memory-card-integration/releases/tag/v0.1.0
