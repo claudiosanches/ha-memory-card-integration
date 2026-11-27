@@ -26,11 +26,10 @@ sensors match the ones the app's MQTT mode creates, IDs included. The
 
 ## Installation
 
-[![Open your Home Assistant instance and open a repository in the Marketplace.][marketplace-shield]][marketplace]
-
-1. Select the button above to add this repository to the Marketplace as a
-   custom repository, which needs the Marketplace connected to GitHub.
-   Download **Memory Card** and restart Home Assistant.
+1. Go to **Settings > Marketplace**, search for **Memory Card** and open it.
+   Select **Install**, then **Install** again in the dialog, and restart Home
+   Assistant if it asks. If the setup opens right away, it says Memory Card
+   sets itself up: close it and go on.
 2. In the Memory Card app's **Configuration** tab, set **Home Assistant
    sensors** to `integration`, save, and restart the app.
 3. Under **Settings > Devices & services**, Memory Card shows as discovered.
@@ -39,6 +38,14 @@ sensors match the ones the app's MQTT mode creates, IDs included. The
 There is nothing to type: the app tells Home Assistant where to find it and
 which token to use. Setting the option back to `mqtt` or `off` removes the
 integration's entry and entities on the app's next start.
+
+<!-- ha-marketplace:exclude-start -->
+This button opens Memory Card in your Marketplace. A Marketplace that does not
+list it yet offers to add this repository as a custom repository, which needs
+the Marketplace connected to GitHub.
+
+[![Open your Home Assistant instance and open a repository in the Marketplace.][marketplace-shield]][marketplace]
+<!-- ha-marketplace:exclude-end -->
 
 ## Entities
 
